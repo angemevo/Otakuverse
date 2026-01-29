@@ -1,9 +1,15 @@
 export interface User {
-    id: string;
-    username: string;
-    displayName?: string | null;
-    avatarUrl?: string | null;
-    bio?: string | null;
-    createdAt: Date;
-    updatedAt: Date;
+  id: string;
+  email: string;
+  username: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  bio: string | null;
+  followers_count: number;
+  following_count: number;
+  posts_count: number;
+  is_private: boolean;
+  is_verified: boolean;
+  created_at: Date;
+  updated_at: Date;
 }

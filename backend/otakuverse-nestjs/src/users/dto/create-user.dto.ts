@@ -1,24 +1,21 @@
-import { IsEmail, IsNumber, IsOptional, IsString, Max, MaxLength, Min, MinLength } from "class-validator";
+import { IsEmail, IsString, MinLength, MaxLength, IsOptional } from 'class-validator';
 
 export class CreateUserDto {
-    @IsString()
-    id: string
+  @IsString()
+  id: string;
 
-    @IsEmail()
-    email: string;
-    
-    @IsString()
-    @MinLength(3)
-    @MaxLength(20)
-    username: string;
+  @IsEmail()
+  email: string;
 
-    @IsString()
-    @IsOptional()
-    @MaxLength(30)
-    displayName?: string;
+  @IsString()
+  @MinLength(3)
+  @MaxLength(30)
+  username: string;
 
-    @IsNumber()
-    phone?: string;
+  @IsString()
+  @IsOptional()
+  @MaxLength(100)
+  display_name?: string;
 }
 // - id: string
 // - email: string
