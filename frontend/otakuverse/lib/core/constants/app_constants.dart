@@ -186,6 +186,9 @@ class AppConstants {
   
   /// Clé user id
   static const String userIdKey = 'user_id';
+
+  /// Clé user data
+  static const String userDatakey = 'user_data';
   
   /// Clé theme mode
   static const String themeModeKey = 'theme_mode';
