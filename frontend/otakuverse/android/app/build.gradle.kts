@@ -7,12 +7,17 @@ plugins {
 
 android {
     namespace = "com.example.otakuverse"
-    compileSdkVersion 34
-    ndkVersion = flutter.ndkVersion
+    compileSdk = 36
+    defaultConfig {
+        minSdk = flutter.minSdkVersion
+        targetSdk = 36
+    }
+    ndkVersion = "28.2.13676358"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        isCoreLibraryDesugaringEnabled = true 
     }
 
     kotlinOptions {
@@ -20,26 +25,28 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.otakuverse.app"
-        minSdkVersion 21  // Minimum pour la plupart des packages
-        targetSdkVersion 34
-        versionCode flutterVersionCode.toInteger()
-        versionName flutterVersionName
-        multiDexEnabled true  // Important pour Firebase
+        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
+        applicationId = "com.example.otakuverse"
+        // You can update the following values to match your application needs.
+        // For more information, see: https://flutter.dev/to/review-gradle-config.
+        minSdk = flutter.minSdkVersion
+        targetSdk = flutter.targetSdkVersion
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
     }
 
     buildTypes {
         release {
-            signingConfig signingConfigs.debug
-            minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            // TODO: Add your own signing config for the release build.
+            // Signing with the debug keys for now, so `flutter run --release` works.
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 }
 
 dependencies {
-    implementation 'com.google.android.material:material:1.11.0'
-    implementation 'androidx.multidex:multidex:2.0.1'
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.10") // compatible Kotlin
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }
 
 flutter {

@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:get/get_navigation/src/root/get_material_app.dart';
+import 'package:otakuverse/core/constants/assets.dart';
 import 'package:otakuverse/core/constants/colors.dart';
+import 'package:otakuverse/core/utils/helpers.dart';
+import 'package:otakuverse/screens/auth/signup_screen.dart';
+import 'package:otakuverse/screens/home_screen.dart';
 import 'package:otakuverse/services/api_service.dart';
 import 'package:otakuverse/services/auth_service.dart';
 import 'package:otakuverse/services/storage_service.dart';
@@ -19,7 +24,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       title: 'Otakuverse',
       theme: ThemeData(
         colorScheme: .fromSeed(seedColor: Colors.deepPurple),
@@ -57,12 +62,12 @@ class _SplashScreenState extends State<SplashScreen> {
     if (isLogged) {
       // Naviguer vers l'écran principal
       print('User is logged in, navigate to HomeScreen');
-      // Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => HomeScreen()));
+      Helpers.navigateReplace(HomeScreen());
 
     } else {
       // Naviguer vers l'écran de connexion
       print('User is not logged in, navigate to SignInScreen');
-      // Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => SignInScreen()));
+      Helpers.navigateReplace(SignUpScreen());
     }
   }
 
@@ -74,6 +79,9 @@ class _SplashScreenState extends State<SplashScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text('Otakuverse', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.deepBlack),),
+            const SizedBox(height: 20),
+            
+            Image.asset(AppAssets.logo, scale: 3),
             const SizedBox(height: 20),
             CircularProgressIndicator(),
           ],
