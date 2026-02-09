@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:otakuverse/core/utils/validators.dart';
+import 'package:otakuverse/core/widgets/button/app_button.dart';
+import 'package:otakuverse/core/widgets/divider.dart' show buildDivider;
 import 'package:otakuverse/core/widgets/signup/build_header_widget.dart';
 import 'package:otakuverse/core/widgets/custom_text_field.dart';
+import 'package:otakuverse/core/widgets/signup/signin_link.dart';
 import 'package:otakuverse/screens/home_screen.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../services/auth_service.dart';
@@ -246,17 +249,39 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 const SizedBox(height: 16),
 
                 // Display Name (optionnel)
-                _buildDisplayNameField(),
+                CustomTextField(
+                  controller: _displayNameController, 
+                  label: 'Nom d\'affichage (optionnel)',
+                  prefixIcon: Icons.badge_outlined,
+                  validator: (value) {Validators.validateDisplayName(value);},
+                  helperText: 'Le nom qui sera affiché sur votre profil',
+                ),
 
                 const SizedBox(height: 16),
 
                 // Password
-                _buildPasswordField(),
+                CustomTextField(
+                  controller: _passwordController, 
+                  label: 'Mot de passe',
+                  prefixIcon: Icons.lock_outlined,
+                  validator: (value) {Validators.validatePassword(value);},
+                  isPassword: true,
+                  helperText: 'Minimum ${AppConstants.minPasswordLength} caractères',
+                  
+                ),
 
                 const SizedBox(height: 16),
 
                 // Confirm Password
-                _buildConfirmPasswordField(),
+                CustomTextField(
+                  controller: _passwordController, 
+                  label: 'Mot de passe',
+                  prefixIcon: Icons.lock_outlined,
+                  validator: (value) {Validators.validateConfirmPassword(value, _passwordController.text);},
+                  isPassword: true,
+                  helperText: 'Minimum ${AppConstants.minPasswordLength} caractères',
+                  
+                ),
 
                 const SizedBox(height: 20),
 
@@ -266,17 +291,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 const SizedBox(height: 32),
 
                 // Bouton S'inscrire
-                _buildSignUpButton(),
+                AppButton(
+                  label: 'S\'inscrire',
+                  type: AppButtonType.primary,
+                  isLoading: true,
+                  onPressed: _handleSignUp,
+                ),
 
                 const SizedBox(height: 24),
 
                 // Divider
-                _buildDivider(),
+                buildDivider(),
 
                 const SizedBox(height: 24),
 
                 // Déjà un compte ? Se connecter
-                _buildSignInLink(),
+                buildSignInLink(),
               ],
             ),
           ),
@@ -322,185 +352,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
  
-  Widget _buildUsernameField() {
-    return TextFormField(
-      controller: _usernameController,
-      style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        labelText: 'Nom d\'utilisateur',
-        labelStyle: TextStyle(color: Colors.grey[400]),
-        prefixIcon: Icon(Icons.person_outline, color: Colors.grey[400]),
-        helperText: 'Entre ${AppConstants.minUsernameLength} et ${AppConstants.maxUsernameLength} caractères, lettres, chiffres et _',
-        helperStyle: TextStyle(color: Colors.grey[600], fontSize: 12),
-        filled: true,
-        fillColor: const Color(0xFF1E1E1E),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[800]!),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF6C63FF), width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFCF6679)),
-        ),
-      ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Veuillez entrer un nom d\'utilisateur';
-        }
-        if (value.length < AppConstants.minUsernameLength) {
-          return 'Minimum ${AppConstants.minUsernameLength} caractères';
-        }
-        if (value.length > AppConstants.maxUsernameLength) {
-          return 'Maximum ${AppConstants.maxUsernameLength} caractères';
-        }
-        if (!RegExp(AppConstants.usernamePattern).hasMatch(value)) {
-          return 'Uniquement lettres, chiffres et _';
-        }
-        return null;
-      },
-    );
-  }
-
-  Widget _buildDisplayNameField() {
-    return TextFormField(
-      controller: _displayNameController,
-      style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        labelText: 'Nom d\'affichage (optionnel)',
-        labelStyle: TextStyle(color: Colors.grey[400]),
-        prefixIcon: Icon(Icons.badge_outlined, color: Colors.grey[400]),
-        helperText: 'Le nom qui sera affiché sur votre profil',
-        helperStyle: TextStyle(color: Colors.grey[600], fontSize: 12),
-        filled: true,
-        fillColor: const Color(0xFF1E1E1E),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[800]!),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF6C63FF), width: 2),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPasswordField() {
-    return TextFormField(
-      controller: _passwordController,
-      obscureText: _obscurePassword,
-      style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        labelText: 'Mot de passe',
-        labelStyle: TextStyle(color: Colors.grey[400]),
-        prefixIcon: Icon(Icons.lock_outlined, color: Colors.grey[400]),
-        suffixIcon: IconButton(
-          icon: Icon(
-            _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-            color: Colors.grey[400],
-          ),
-          onPressed: () {
-            setState(() {
-              _obscurePassword = !_obscurePassword;
-            });
-          },
-        ),
-        helperText: 'Minimum ${AppConstants.minPasswordLength} caractères',
-        helperStyle: TextStyle(color: Colors.grey[600], fontSize: 12),
-        filled: true,
-        fillColor: const Color(0xFF1E1E1E),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[800]!),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF6C63FF), width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFCF6679)),
-        ),
-      ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Veuillez entrer un mot de passe';
-        }
-        if (value.length < AppConstants.minPasswordLength) {
-          return 'Minimum ${AppConstants.minPasswordLength} caractères';
-        }
-        return null;
-      },
-    );
-  }
-
-  Widget _buildConfirmPasswordField() {
-    return TextFormField(
-      controller: _confirmPasswordController,
-      obscureText: _obscureConfirmPassword,
-      style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        labelText: 'Confirmer le mot de passe',
-        labelStyle: TextStyle(color: Colors.grey[400]),
-        prefixIcon: Icon(Icons.lock_outlined, color: Colors.grey[400]),
-        suffixIcon: IconButton(
-          icon: Icon(
-            _obscureConfirmPassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-            color: Colors.grey[400],
-          ),
-          onPressed: () {
-            setState(() {
-              _obscureConfirmPassword = !_obscureConfirmPassword;
-            });
-          },
-        ),
-        filled: true,
-        fillColor: const Color(0xFF1E1E1E),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[800]!),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF6C63FF), width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFCF6679)),
-        ),
-      ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Veuillez confirmer le mot de passe';
-        }
-        if (value != _passwordController.text) {
-          return 'Les mots de passe ne correspondent pas';
-        }
-        return null;
-      },
-    );
-  }
-
   Widget _buildTermsCheckbox() {
     return Row(
       children: [
@@ -548,87 +399,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                 ],
               ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSignUpButton() {
-    return SizedBox(
-      height: 56,
-      child: ElevatedButton(
-        onPressed: _isLoading ? null : _handleSignUp,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF6C63FF),
-          disabledBackgroundColor: Colors.grey[800],
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          elevation: 0,
-        ),
-        child: _isLoading
-            ? const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              )
-            : const Text(
-                'S\'inscrire',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-      ),
-    );
-  }
-
-  Widget _buildDivider() {
-    return Row(
-      children: [
-        Expanded(child: Divider(color: Colors.grey[800])),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            'OU',
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontSize: 14,
-            ),
-          ),
-        ),
-        Expanded(child: Divider(color: Colors.grey[800])),
-      ],
-    );
-  }
-
-  Widget _buildSignInLink() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          'Déjà un compte ? ',
-          style: TextStyle(
-            color: Colors.grey[400],
-            fontSize: 14,
-          ),
-        ),
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-          child: const Text(
-            'Se connecter',
-            style: TextStyle(
-              color: Color(0xFF6C63FF),
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
             ),
           ),
         ),
