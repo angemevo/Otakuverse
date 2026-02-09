@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:otakuverse/core/utils/helpers.dart';
 import 'package:otakuverse/core/utils/validators.dart';
 import 'package:otakuverse/core/widgets/signup/build_header_widget.dart';
 import 'package:otakuverse/core/widgets/custom_text_field.dart';
-import 'package:otakuverse/screens/home_screen.dart';
+import 'package:otakuverse/screens/auth/login_screen.dart';
+import 'package:otakuverse/screens/auth/signup_succes_screen.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../services/auth_service.dart';
-import '../../../services/api_service.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -54,17 +55,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
   // ============================================
 
   Future<void> _handleSignUp() async {
-    // Reset error
     setState(() {
       _errorMessage = null;
     });
 
-    // Validation
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
-    // Vérifier les conditions
     if (!_acceptTerms) {
       setState(() {
         _errorMessage = 'Vous devez accepter les conditions d\'utilisation';
@@ -72,13 +70,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
       return;
     }
 
-    // Loading
     setState(() {
       _isLoading = true;
     });
 
     try {
-      // Inscription
       final result = await _authService.signup(
         email: _emailController.text.trim(),
         password: _passwordController.text,
@@ -90,19 +86,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
       if (!mounted) return;
 
-      if (result['success'] == true) {
-        // Succès → Afficher message puis naviguer
-        _showSuccessDialog();
-      } else {
-        // Erreur
-        setState(() {
-          _errorMessage = result['error'] ?? AppConstants.genericErrorMessage;
-        });
+      final success = result['success'];
+      if (success is Map<String, dynamic>) {
+        Helpers.navigateReplace(SignupSuccessScreen(username: _usernameController.text));
       }
+
+
+      setState(() {
+        _errorMessage = result['error'] ?? AppConstants.genericErrorMessage;
+        print('SIGNUP RESULT => $result');
+        print('success type => ${result['success'].runtimeType}');
+        print('error => ${result['error']}');
+
+      });
     } catch (e) {
       if (!mounted) return;
 
-      setState(() {
+      setState(() { 
         _errorMessage = _getErrorMessage(e.toString());
       });
     } finally {
@@ -113,75 +113,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       }
     }
   }
-
-  // ============================================
-  // SUCCESS DIALOG
-  // ============================================
-
-  void _showSuccessDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E1E),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.check_circle,
-              color: Color(0xFF4CAF50),
-              size: 64,
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Inscription réussie !',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Bienvenue sur Otakuverse, ${_usernameController.text} !',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[400],
-              ),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); // Fermer dialog
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(
-                      builder: (_) => const HomeScreen(),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6C63FF),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text(
-                  'C\'est parti !',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  
 
   // ============================================
   // ERROR HANDLING
@@ -230,7 +162,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   controller: _emailController, 
                   label: 'Email',
                   prefixIcon: Icons.email_outlined,
-                  validator: (value) {Validators.validateEmail(value);},
+                  validator: Validators.validateEmail,
                 ),
 
                 const SizedBox(height: 16),
@@ -240,7 +172,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   controller: _usernameController, 
                   label: 'Nom d\'utilisateur',
                   prefixIcon: Icons.person_outline,
-                  validator: (value) {Validators.validateUsername(value);},
+                  validator: Validators.validateUsername,
                 ),
 
                 const SizedBox(height: 16),
@@ -322,53 +254,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
  
-  Widget _buildUsernameField() {
-    return TextFormField(
-      controller: _usernameController,
-      style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        labelText: 'Nom d\'utilisateur',
-        labelStyle: TextStyle(color: Colors.grey[400]),
-        prefixIcon: Icon(Icons.person_outline, color: Colors.grey[400]),
-        helperText: 'Entre ${AppConstants.minUsernameLength} et ${AppConstants.maxUsernameLength} caractères, lettres, chiffres et _',
-        helperStyle: TextStyle(color: Colors.grey[600], fontSize: 12),
-        filled: true,
-        fillColor: const Color(0xFF1E1E1E),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[800]!),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF6C63FF), width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFCF6679)),
-        ),
-      ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Veuillez entrer un nom d\'utilisateur';
-        }
-        if (value.length < AppConstants.minUsernameLength) {
-          return 'Minimum ${AppConstants.minUsernameLength} caractères';
-        }
-        if (value.length > AppConstants.maxUsernameLength) {
-          return 'Maximum ${AppConstants.maxUsernameLength} caractères';
-        }
-        if (!RegExp(AppConstants.usernamePattern).hasMatch(value)) {
-          return 'Uniquement lettres, chiffres et _';
-        }
-        return null;
-      },
-    );
-  }
-
   Widget _buildDisplayNameField() {
     return TextFormField(
       controller: _displayNameController,
@@ -621,7 +506,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         ),
         TextButton(
           onPressed: () {
-            Navigator.of(context).pop();
+            Helpers.navigateTo(SignInScreen());
           },
           child: const Text(
             'Se connecter',
