@@ -58,6 +58,7 @@ class AppTextStyles {
     fontSize: 14,
     fontWeight: FontWeight.w400,
     height: 1.43, // Line height 20px
+    color: AppColors.infoBlue
   );
   
   /// Body Small - Texte secondaire (12px / 0.75rem)
