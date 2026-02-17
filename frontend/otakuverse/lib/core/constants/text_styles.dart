@@ -158,6 +158,7 @@ class AppTextStyles {
     fontSize: 20,
     fontWeight: FontWeight.w700,
     letterSpacing: 0.15,
+    color: AppColors.crimsonRed
   );
   
   // ============================================
@@ -176,7 +177,7 @@ class AppTextStyles {
   
   /// Input Label
   static TextStyle inputLabel = GoogleFonts.inter(
-    fontSize: 12,
+    fontSize: 16,
     fontWeight: FontWeight.w500,
     letterSpacing: 0.15,
   );
@@ -185,6 +186,7 @@ class AppTextStyles {
   static TextStyle inputText = GoogleFonts.inter(
     fontSize: 16,
     fontWeight: FontWeight.w400,
+    color: AppColors.pureWhite
   );
   
   /// Input Hint

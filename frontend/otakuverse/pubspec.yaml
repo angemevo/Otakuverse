@@ -166,6 +166,7 @@ dependencies:
   # PAGINATION
   # ============================================
   flutter_dotenv: ^6.0.0  
+  heroicons_flutter: ^0.4.0
 
 dev_dependencies:
   flutter_test:

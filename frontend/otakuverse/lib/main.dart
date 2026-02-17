@@ -4,7 +4,7 @@ import 'package:otakuverse/core/constants/assets.dart';
 import 'package:otakuverse/core/constants/colors.dart';
 import 'package:otakuverse/core/utils/helpers.dart';
 import 'package:otakuverse/screens/auth/signup_screen.dart';
-import 'package:otakuverse/screens/home_screen.dart';
+import 'package:otakuverse/screens/navigation_page.dart';
 import 'package:otakuverse/services/api_service.dart';
 import 'package:otakuverse/services/auth_service.dart';
 import 'package:otakuverse/services/storage_service.dart';
@@ -26,10 +26,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       title: 'Otakuverse',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const SignUpScreen(),
+      home: const SplashScreen(),
     );
   }
 }
@@ -62,7 +63,7 @@ class _SplashScreenState extends State<SplashScreen> {
     if (isLogged) {
       // Naviguer vers l'écran principal
       print('User is logged in, navigate to HomeScreen');
-      Helpers.navigateReplace(HomeScreen());
+      Helpers.navigateReplace(NavigationPage());
 
     } else {
       // Naviguer vers l'écran de connexion
@@ -74,6 +75,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.deepBlack,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

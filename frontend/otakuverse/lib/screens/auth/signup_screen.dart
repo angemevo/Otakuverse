@@ -30,11 +30,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   // Services
   late final AuthService _authService;
-
+  
   // État
   bool _isLoading = false;
-  bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
+  
   String? _errorMessage;
   bool _acceptTerms = false;
 
@@ -144,7 +143,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
+      backgroundColor: AppColors.deepBlack,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -199,8 +198,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   prefixIcon: Icons.lock_outlined,
                   validator: Validators.validatePassword,
                   isPassword: true,
-                  helperText: 'Minimum ${AppConstants.minPasswordLength} caractères',
-                  
+                  helperText: 'Minimum ${AppConstants.minPasswordLength} caractères'
                 ),
 
                 const SizedBox(height: 16),
@@ -296,7 +294,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               _acceptTerms = value ?? false;
             });
           },
-          activeColor: const Color(0xFF6C63FF),
+          activeColor: AppColors.crimsonRed,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(4),
           ),
@@ -316,7 +314,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   TextSpan(
                     text: 'conditions d\'utilisation',
                     style: const TextStyle(
-                      color: Color(0xFF6C63FF),
+                      color: AppColors.crimsonRed,
                       decoration: TextDecoration.underline,
                     ),
                   ),
@@ -324,7 +322,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   TextSpan(
                     text: 'politique de confidentialité',
                     style: const TextStyle(
-                      color: Color(0xFF6C63FF),
+                      color: AppColors.crimsonRed,
                       decoration: TextDecoration.underline,
                     ),
                   ),
