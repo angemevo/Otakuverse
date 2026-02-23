@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:otakuverse/core/constants/text_styles.dart';
 import 'package:otakuverse/core/utils/helpers.dart';
 import 'package:otakuverse/screens/auth/login_screen.dart';
 
@@ -17,13 +18,9 @@ Widget buildSignInLink() {
           onPressed: () {
             Helpers.navigateTo(SignInScreen());
           },
-          child: const Text(
+          child: Text(
             'Se connecter',
-            style: TextStyle(
-              color: Color(0xFF6C63FF),
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
+            style: AppTextStyles.link
           ),
         ),
       ],

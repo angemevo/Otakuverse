@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:otakuverse/core/constants/colors.dart';
+import 'package:otakuverse/core/constants/text_styles.dart';
+import 'package:otakuverse/core/utils/helpers.dart';
 import 'package:otakuverse/core/utils/validators.dart';
 import 'package:otakuverse/core/widgets/button/app_button.dart';
 import 'package:otakuverse/core/widgets/divider.dart' show buildDivider;
 import 'package:otakuverse/core/widgets/signup/build_header_widget.dart';
 import 'package:otakuverse/core/widgets/custom_text_field.dart';
 import 'package:otakuverse/core/widgets/signup/signin_link.dart';
-import 'package:otakuverse/screens/home_screen.dart';
+import 'package:otakuverse/screens/auth/signup_succes_screen.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../services/auth_service.dart';
-import '../../../services/api_service.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -28,11 +30,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   // Services
   late final AuthService _authService;
-
+  
   // État
   bool _isLoading = false;
-  bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
+  
   String? _errorMessage;
   bool _acceptTerms = false;
 
@@ -57,17 +58,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
   // ============================================
 
   Future<void> _handleSignUp() async {
-    // Reset error
     setState(() {
       _errorMessage = null;
     });
 
-    // Validation
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
-    // Vérifier les conditions
     if (!_acceptTerms) {
       setState(() {
         _errorMessage = 'Vous devez accepter les conditions d\'utilisation';
@@ -75,13 +73,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
       return;
     }
 
-    // Loading
     setState(() {
       _isLoading = true;
     });
 
     try {
-      // Inscription
       final result = await _authService.signup(
         email: _emailController.text.trim(),
         password: _passwordController.text,
@@ -93,19 +89,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
       if (!mounted) return;
 
-      if (result['success'] == true) {
-        // Succès → Afficher message puis naviguer
-        _showSuccessDialog();
-      } else {
-        // Erreur
-        setState(() {
-          _errorMessage = result['error'] ?? AppConstants.genericErrorMessage;
-        });
+      final success = result['success'];
+      if (success is Map<String, dynamic>) {
+        Helpers.navigateReplace(SignupSuccessScreen(username: _usernameController.text));
       }
+
+
+      setState(() {
+        _errorMessage = result['error'] ?? AppConstants.genericErrorMessage;
+        print('SIGNUP RESULT => $result');
+        print('success type => ${result['success'].runtimeType}');
+        print('error => ${result['error']}');
+
+      });
     } catch (e) {
       if (!mounted) return;
 
-      setState(() {
+      setState(() { 
         _errorMessage = _getErrorMessage(e.toString());
       });
     } finally {
@@ -116,75 +116,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       }
     }
   }
-
-  // ============================================
-  // SUCCESS DIALOG
-  // ============================================
-
-  void _showSuccessDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E1E),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.check_circle,
-              color: Color(0xFF4CAF50),
-              size: 64,
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Inscription réussie !',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Bienvenue sur Otakuverse, ${_usernameController.text} !',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[400],
-              ),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); // Fermer dialog
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(
-                      builder: (_) => const HomeScreen(),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6C63FF),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text(
-                  'C\'est parti !',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  
 
   // ============================================
   // ERROR HANDLING
@@ -211,7 +143,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
+      backgroundColor: AppColors.deepBlack,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -233,7 +165,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   controller: _emailController, 
                   label: 'Email',
                   prefixIcon: Icons.email_outlined,
-                  validator: (value) {Validators.validateEmail(value);},
+                  validator: Validators.validateEmail,
                 ),
 
                 const SizedBox(height: 16),
@@ -243,7 +175,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   controller: _usernameController, 
                   label: 'Nom d\'utilisateur',
                   prefixIcon: Icons.person_outline,
-                  validator: (value) {Validators.validateUsername(value);},
+                  validator: Validators.validateUsername,
                 ),
 
                 const SizedBox(height: 16),
@@ -253,7 +185,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   controller: _displayNameController, 
                   label: 'Nom d\'affichage (optionnel)',
                   prefixIcon: Icons.badge_outlined,
-                  validator: (value) {Validators.validateDisplayName(value);},
+                  validator: Validators.validateDisplayName,
                   helperText: 'Le nom qui sera affiché sur votre profil',
                 ),
 
@@ -264,10 +196,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   controller: _passwordController, 
                   label: 'Mot de passe',
                   prefixIcon: Icons.lock_outlined,
-                  validator: (value) {Validators.validatePassword(value);},
+                  validator: Validators.validatePassword,
                   isPassword: true,
-                  helperText: 'Minimum ${AppConstants.minPasswordLength} caractères',
-                  
+                  helperText: 'Minimum ${AppConstants.minPasswordLength} caractères'
                 ),
 
                 const SizedBox(height: 16),
@@ -277,7 +208,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   controller: _passwordController, 
                   label: 'Mot de passe',
                   prefixIcon: Icons.lock_outlined,
-                  validator: (value) {Validators.validateConfirmPassword(value, _passwordController.text);},
+                  validator: (value) => Validators.validateConfirmPassword(value, _passwordController.text),
                   isPassword: true,
                   helperText: 'Minimum ${AppConstants.minPasswordLength} caractères',
                   
@@ -293,8 +224,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 // Bouton S'inscrire
                 AppButton(
                   label: 'S\'inscrire',
+                  // labelStyle: AppTextStyles.button,
                   type: AppButtonType.primary,
-                  isLoading: true,
+                  isLoading: _isLoading,
                   onPressed: _handleSignUp,
                 ),
 
@@ -362,7 +294,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               _acceptTerms = value ?? false;
             });
           },
-          activeColor: const Color(0xFF6C63FF),
+          activeColor: AppColors.crimsonRed,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(4),
           ),
@@ -376,16 +308,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
             },
             child: RichText(
               text: TextSpan(
-                style: TextStyle(
-                  color: Colors.grey[400],
-                  fontSize: 14,
-                ),
+                style: AppTextStyles.bodySmall,
                 children: [
                   const TextSpan(text: 'J\'accepte les '),
                   TextSpan(
                     text: 'conditions d\'utilisation',
                     style: const TextStyle(
-                      color: Color(0xFF6C63FF),
+                      color: AppColors.crimsonRed,
                       decoration: TextDecoration.underline,
                     ),
                   ),
@@ -393,7 +322,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   TextSpan(
                     text: 'politique de confidentialité',
                     style: const TextStyle(
-                      color: Color(0xFF6C63FF),
+                      color: AppColors.crimsonRed,
                       decoration: TextDecoration.underline,
                     ),
                   ),

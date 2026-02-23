@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:otakuverse/core/constants/text_styles.dart';
+import 'package:otakuverse/core/utils/helpers.dart';
+import 'package:otakuverse/core/utils/validators.dart';
+import 'package:otakuverse/core/widgets/button/app_button.dart';
+import 'package:otakuverse/core/widgets/custom_text_field.dart';
 import 'package:otakuverse/screens/home_screen.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../services/auth_service.dart';
-import '../../../services/storage_service.dart';
-import '../../../services/api_service.dart';
 import 'signup_screen.dart';
 
 class SignInScreen extends StatefulWidget {
@@ -24,7 +27,6 @@ class _SignInScreenState extends State<SignInScreen> {
 
   // État
   bool _isLoading = false;
-  bool _obscurePassword = true;
   String? _errorMessage;
 
   @override
@@ -69,19 +71,15 @@ class _SignInScreenState extends State<SignInScreen> {
 
       if (!mounted) return;
 
-      if (result['success'] == true) {
-        // Succès → Navigation vers Home
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const HomeScreen(),
-          ),
-        );
-      } else {
-        // Erreur
-        setState(() {
-          _errorMessage = result['error'] ?? AppConstants.genericErrorMessage;
-        });
+      final success = result['success'];
+      if (success is Map<String, dynamic>) {
+        Helpers.navigateOffAll(HomeScreen());
+        return; 
       }
+
+      setState(() {
+        _errorMessage = result['error'] ?? AppConstants.genericErrorMessage;
+      });
     } catch (e) {
       if (!mounted) return;
 
@@ -140,12 +138,24 @@ class _SignInScreenState extends State<SignInScreen> {
                 if (_errorMessage != null) _buildErrorBanner(),
 
                 // Email
-                _buildEmailField(),
+                CustomTextField(
+                  controller: _emailController, 
+                  label: 'Email',
+                  prefixIcon: Icons.email_outlined,
+                  validator: Validators.validateEmail,
+                ),
 
                 const SizedBox(height: 20),
 
                 // Password
-                _buildPasswordField(),
+                CustomTextField(
+                  controller: _passwordController, 
+                  label: 'Mot de passe',
+                  prefixIcon: Icons.lock_outlined,
+                  validator: Validators.validatePassword,
+                  isPassword: true,
+                  helperText: 'Minimum ${AppConstants.minPasswordLength} caractères'
+                ),
 
                 const SizedBox(height: 12),
 
@@ -155,7 +165,13 @@ class _SignInScreenState extends State<SignInScreen> {
                 const SizedBox(height: 32),
 
                 // Bouton Connexion
-                _buildSignInButton(),
+                AppButton(
+                  label: 'S\'inscrire',
+                  // labelStyle: AppTextStyles.button,
+                  type: AppButtonType.primary,
+                  isLoading: _isLoading,
+                  onPressed: _handleSignIn,
+                ),
 
                 const SizedBox(height: 24),
 
@@ -186,18 +202,9 @@ class _SignInScreenState extends State<SignInScreen> {
           width: 80,
           height: 80,
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF6C63FF), Color(0xFF5A52D5)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
             borderRadius: BorderRadius.circular(20),
           ),
-          child: const Icon(
-            Icons.public,
-            size: 40,
-            color: Colors.white,
-          ),
+          child: Image.asset("assets/logo/otakuverse_logo.png")
         ),
 
         const SizedBox(height: 24),
@@ -259,97 +266,6 @@ class _SignInScreenState extends State<SignInScreen> {
     );
   }
 
-  Widget _buildEmailField() {
-    return TextFormField(
-      controller: _emailController,
-      keyboardType: TextInputType.emailAddress,
-      style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        labelText: 'Email',
-        labelStyle: TextStyle(color: Colors.grey[400]),
-        prefixIcon: Icon(Icons.email_outlined, color: Colors.grey[400]),
-        filled: true,
-        fillColor: const Color(0xFF1E1E1E),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[800]!),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF6C63FF), width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFCF6679)),
-        ),
-      ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Veuillez entrer votre email';
-        }
-        if (!RegExp(AppConstants.emailPattern).hasMatch(value)) {
-          return 'Email invalide';
-        }
-        return null;
-      },
-    );
-  }
-
-  Widget _buildPasswordField() {
-    return TextFormField(
-      controller: _passwordController,
-      obscureText: _obscurePassword,
-      style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        labelText: 'Mot de passe',
-        labelStyle: TextStyle(color: Colors.grey[400]),
-        prefixIcon: Icon(Icons.lock_outlined, color: Colors.grey[400]),
-        suffixIcon: IconButton(
-          icon: Icon(
-            _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-            color: Colors.grey[400],
-          ),
-          onPressed: () {
-            setState(() {
-              _obscurePassword = !_obscurePassword;
-            });
-          },
-        ),
-        filled: true,
-        fillColor: const Color(0xFF1E1E1E),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[800]!),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF6C63FF), width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFCF6679)),
-        ),
-      ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Veuillez entrer votre mot de passe';
-        }
-        if (value.length < AppConstants.minPasswordLength) {
-          return 'Mot de passe trop court (min ${AppConstants.minPasswordLength} caractères)';
-        }
-        return null;
-      },
-    );
-  }
-
   Widget _buildForgotPassword() {
     return Align(
       alignment: Alignment.centerRight,
@@ -367,40 +283,6 @@ class _SignInScreenState extends State<SignInScreen> {
             fontSize: 14,
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildSignInButton() {
-    return SizedBox(
-      height: 56,
-      child: ElevatedButton(
-        onPressed: _isLoading ? null : _handleSignIn,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF6C63FF),
-          disabledBackgroundColor: Colors.grey[800],
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          elevation: 0,
-        ),
-        child: _isLoading
-            ? const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              )
-            : const Text(
-                'Se connecter',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
       ),
     );
   }
@@ -443,13 +325,9 @@ class _SignInScreenState extends State<SignInScreen> {
               ),
             );
           },
-          child: const Text(
+          child: Text(
             'S\'inscrire',
-            style: TextStyle(
-              color: Color(0xFF6C63FF),
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
+            style: AppTextStyles.link
           ),
         ),
       ],

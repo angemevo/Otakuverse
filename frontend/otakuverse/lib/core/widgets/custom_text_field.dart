@@ -9,8 +9,7 @@ class CustomTextField extends StatefulWidget {
   final TextInputType keyboardType;
   final bool isPassword;
   final String? Function(String?)? validator;
-
-  const CustomTextField({
+CustomTextField({
     Key? key,
     required this.controller,
     required this.label,
