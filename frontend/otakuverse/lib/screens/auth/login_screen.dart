@@ -5,6 +5,7 @@ import 'package:otakuverse/core/utils/validators.dart';
 import 'package:otakuverse/core/widgets/button/app_button.dart';
 import 'package:otakuverse/core/widgets/custom_text_field.dart';
 import 'package:otakuverse/screens/home_screen.dart';
+import 'package:otakuverse/screens/navigation_page.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../services/auth_service.dart';
 import 'signup_screen.dart';
@@ -73,7 +74,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
       final success = result['success'];
       if (success is Map<String, dynamic>) {
-        Helpers.navigateOffAll(HomeScreen());
+        Helpers.navigateOffAll(NavigationPage());
         return; 
       }
 

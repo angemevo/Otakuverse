@@ -5,6 +5,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 @Injectable()
 export class SupabaseService {
   private supabase: SupabaseClient;
+    client: any;
 
   constructor(private configService: ConfigService) {
     const supabaseUrl = this.configService.get<string>('SUPABASE_URL');
@@ -22,6 +23,8 @@ export class SupabaseService {
         persistSession: false,
       },
     });
+
+    this.client = this.supabase;
 
     console.log('✅ Supabase client initialized');
   }
