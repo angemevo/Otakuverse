@@ -26,7 +26,7 @@ class PostsService {
   }) async {
     try {
       final response = await _dio.post(
-        '${ApiConfig.baseUrl}/posts',
+        '${ApiConfig.posts}',
         data: {
           'caption': caption,
           'media_urls': mediaUrls,
@@ -48,7 +48,7 @@ class PostsService {
   Future<Map<String, dynamic>> getPostById(String postId) async {
     try {
       final response = await _dio.get(
-        '${ApiConfig.baseUrl}/posts/$postId',
+        '${ApiConfig.getPost}',
         options: await _authOptions(),
       );
 
