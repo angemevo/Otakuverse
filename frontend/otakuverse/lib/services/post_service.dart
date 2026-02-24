@@ -29,7 +29,7 @@ class PostsService {
         '${ApiConfig.posts}',
         data: {
           'caption': caption,
-          'media_urls': mediaUrls,
+          if (mediaUrls.isNotEmpty) 'media_urls': mediaUrls,
           'location': location,
           'allow_comments': allowComments,
         },
@@ -73,6 +73,69 @@ class PostsService {
           .toList();
 
       return {'success': posts};
+    } catch (e) {
+      return {'error': _handleError(e)};
+    }
+  }
+
+  // ============================================
+  // TOGGLE LIKE
+  // ============================================
+  Future<Map<String, dynamic>> toggleLike(String postId) async {
+    try {
+      final response = await _dio.post(
+        '${ApiConfig.baseUrl}/posts/$postId/like',
+        options: await _authOptions(),
+      );
+      return {'success': response.data};
+    } catch (e) {
+      return {'error': _handleError(e)};
+    }
+  }
+
+  // ============================================
+  // VÉRIFIER SI LIKÉ
+  // ============================================
+  Future<Map<String, dynamic>> hasLiked(String postId) async {
+    try {
+      final response = await _dio.get(
+        '${ApiConfig.baseUrl}/posts/$postId/liked',
+        options: await _authOptions(),
+      );
+      return {'success': response.data['liked']};
+    } catch (e) {
+      return {'success': false};
+    }
+  }
+
+  // ============================================
+  // Récupérer les posts likés
+  // ============================================
+  Future<Map<String, dynamic>> getLikedPosts(String userId) async {
+    try {
+      final response = await _dio.get(
+        '${ApiConfig.baseUrl}/posts/liked/$userId',
+        options: await _authOptions(),
+      );
+      final posts = (response.data as List)
+          .map((json) => PostModel.fromJson(json))
+          .toList();
+      return {'success': posts};
+    } catch (e) {
+      return {'error': _handleError(e)};
+    }
+  }
+
+  // ============================================
+  // INCRÉMENTER COMMENTAIRES
+  // ============================================
+  Future<Map<String, dynamic>> incrementComment(String postId) async {
+    try {
+      final response = await _dio.post(
+        '${ApiConfig.baseUrl}/posts/$postId/comment',
+        options: await _authOptions(),
+      );
+      return {'success': response.data};
     } catch (e) {
       return {'error': _handleError(e)};
     }
@@ -145,7 +208,9 @@ class PostsService {
       if (statusCode == 401) return 'Non autorisé';
       if (statusCode == 403) return 'Action interdite';
       if (statusCode == 404) return 'Post introuvable';
-      return e.response?.data['message'] ?? 'Erreur serveur';
+      final data = e.response?.data;
+      if (data is Map) return data['message'] ?? 'Erreur serveur';
+      return 'Erreur serveur';
     }
     return 'Erreur inconnue';
   }

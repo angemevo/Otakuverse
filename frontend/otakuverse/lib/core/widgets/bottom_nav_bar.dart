@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:heroicons_flutter/heroicons_flutter.dart';
 import 'package:otakuverse/core/constants/colors.dart';
+import 'package:otakuverse/core/widgets/nav%20bar/create_post_button.dart';
 
 class BottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -29,7 +30,7 @@ class BottomNavBar extends StatelessWidget {
             children: [
               _NavItem(icon: HeroiconsOutline.home, label: 'Accueil', index: 0, currentIndex: currentIndex, onTap: onTap),
               _NavItem(icon: HeroiconsOutline.magnifyingGlass, label: 'Recherche', index: 1, currentIndex: currentIndex, onTap: onTap),
-              _AddButton(onTap: () => onTap(2)),
+              const CreatePostButton(),
               _NavItem(icon: HeroiconsOutline.heart, label: 'Activité', index: 3, currentIndex: currentIndex, onTap: onTap),
               _NavItem(icon: HeroiconsOutline.user, label: 'Profil', index: 4, currentIndex: currentIndex, onTap: onTap),
             ],
@@ -104,35 +105,4 @@ class _NavItem extends StatelessWidget {
   }
 }
 
-// ============================================
-// BOUTON AJOUTER (centre)
-// ============================================
-
-class _AddButton extends StatelessWidget {
-  final VoidCallback onTap;
-
-  const _AddButton({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 48,
-        height: 48,
-        decoration: BoxDecoration(
-          gradient: AppColors.primaryGradient,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.crimsonWithOpacity(0.4),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: const Icon(HeroiconsOutline.plus, color: Colors.white, size: 28),
-      ),
-    );
-  }
-}
+  

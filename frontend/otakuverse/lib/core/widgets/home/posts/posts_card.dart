@@ -6,18 +6,18 @@ import 'package:otakuverse/models/post_model.dart';
 
 class PostCard extends StatefulWidget {
   final PostModel post;
+  final bool isLiked; // 👈 ajouté
   final VoidCallback? onLike;
   final VoidCallback? onComment;
   final VoidCallback? onShare;
-  final VoidCallback? onTap;
 
   const PostCard({
     super.key,
     required this.post,
+    this.isLiked = false, // 👈
     this.onLike,
     this.onComment,
     this.onShare,
-    this.onTap,
   });
 
   @override
@@ -28,6 +28,12 @@ class _PostCardState extends State<PostCard> {
   bool _isLiked = false;
   int _currentPage = 0;
   final PageController _pageController = PageController();
+  
+  @override
+  void initState() {
+    super.initState();
+    _isLiked = widget.isLiked; // 👈 initialisé depuis le parent
+  }
 
   @override
   void dispose() {
@@ -47,24 +53,22 @@ class _PostCardState extends State<PostCard> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.only(bottom: 6),
-      margin: EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.all(Radius.circular(22)),
-        color: AppColors.darkGray,
+        borderRadius: BorderRadius.circular(12),
+        color: const Color(0xFF121212),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildHeader(),
-          _buildMedia(),
+          if (widget.post.mediaUrls.isNotEmpty) _buildMedia(), // 👈 conditionnel
           _buildActions(),
           _buildLikesCount(),
           _buildCaption(),
           if (widget.post.commentsCount > 0) _buildCommentsPreview(),
           _buildTimestamp(),
-          // const SizedBox(height: 8),
-          // Divider(color: Colors.grey[900], thickness: 1),
+          const SizedBox(height: 8),
         ],
       ),
     );

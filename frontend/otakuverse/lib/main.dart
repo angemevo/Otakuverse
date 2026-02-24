@@ -3,17 +3,23 @@ import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:otakuverse/core/constants/assets.dart';
 import 'package:otakuverse/core/constants/colors.dart';
 import 'package:otakuverse/core/utils/helpers.dart';
+import 'package:otakuverse/screens/auth/login_screen.dart';
 import 'package:otakuverse/screens/auth/signup_screen.dart';
 import 'package:otakuverse/screens/navigation_page.dart';
 import 'package:otakuverse/services/api_service.dart';
 import 'package:otakuverse/services/auth_service.dart';
 import 'package:otakuverse/services/storage_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
   await WidgetsFlutterBinding.ensureInitialized();
 
   await StorageService().init();
   await ApiService().init();
+  await Supabase.initialize(
+    url: 'https://nnrnikmguonlpfjcnvqr.supabase.co',
+    anonKey: 'sb_publishable_UjrmpKLQ4nMCb1VbZt1-OQ_x8Q6PjZp',
+  );
 
   runApp(const MyApp());
 }
@@ -68,7 +74,7 @@ class _SplashScreenState extends State<SplashScreen> {
     } else {
       // Naviguer vers l'écran de connexion
       print('User is not logged in, navigate to SignInScreen');
-      Helpers.navigateReplace(SignUpScreen());
+      Helpers.navigateReplace(SignInScreen());
     }
   }
 

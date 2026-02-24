@@ -24,6 +24,8 @@ export class SupabaseService {
       },
     });
 
+    this.client = this.supabase;
+
     console.log('✅ Supabase client initialized');
   }
 
