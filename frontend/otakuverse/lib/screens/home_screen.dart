@@ -23,32 +23,33 @@ class _HomeScreenState extends State<HomeScreen> {
   Map<String, bool> _likedPosts = {};
   bool _isLoading = true;
   String? _errorMessage;
+  List<StoryModel> _stories = [];
 
-  final List<Story> stories = [
-    Story(
-      username: 'Sh4dx',
-      avatarUrl: 'https://i.pravatar.cc/150?img=1',
-      imageUrls: [
-        'https://picsum.photos/400/700?random=1',
-        'https://picsum.photos/400/700?random=2',
-      ],
-    ),
-    Story(
-      username: 'Naruto_fan',
-      avatarUrl: 'https://i.pravatar.cc/150?img=2',
-      imageUrls: ['https://picsum.photos/400/700?random=3'],
-    ),
-    Story(
-      username: 'OtakuKing',
-      avatarUrl: 'https://i.pravatar.cc/150?img=3',
-      imageUrls: [
-        'https://picsum.photos/400/700?random=4',
-        'https://picsum.photos/400/700?random=5',
-        'https://picsum.photos/400/700?random=6',
-      ],
-      seen: true,
-    ),
-  ];
+  // final List<Story> stories = [
+  //   Story(
+  //     username: 'Sh4dx',
+  //     avatarUrl: 'https://i.pravatar.cc/150?img=1',
+  //     imageUrls: [
+  //       'https://picsum.photos/400/700?random=1',
+  //       'https://picsum.photos/400/700?random=2',
+  //     ],
+  //   ),
+  //   Story(
+  //     username: 'Naruto_fan',
+  //     avatarUrl: 'https://i.pravatar.cc/150?img=2',
+  //     imageUrls: ['https://picsum.photos/400/700?random=3'],
+  //   ),
+  //   Story(
+  //     username: 'OtakuKing',
+  //     avatarUrl: 'https://i.pravatar.cc/150?img=3',
+  //     imageUrls: [
+  //       'https://picsum.photos/400/700?random=4',
+  //       'https://picsum.photos/400/700?random=5',
+  //       'https://picsum.photos/400/700?random=6',
+  //     ],
+  //     seen: true,
+  //   ),
+  // ];
 
   // ============================================
   // INIT
@@ -151,10 +152,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(horizontal: 12),
-                    itemCount: stories.length,
+                    itemCount: _stories.length,
                     itemBuilder: (context, index) {
                       return StoryAvatar(
-                        story: stories[index],
+                        story: _stories[index],
                         onTap: () {},
                       );
                     },

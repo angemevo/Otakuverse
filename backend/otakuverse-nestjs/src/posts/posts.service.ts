@@ -2,11 +2,13 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  InternalServerErrorException,
+  Query,
 } from '@nestjs/common';
 import { SupabaseService } from '../database/supabase.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
-import { Post } from './entities/post.entity';
+import { Posts } from './entities/post.entity';
 
 
 @Injectable()
@@ -16,7 +18,7 @@ export class PostsService {
   // ============================================
   // CRÉER UN POST
   // ============================================
-  async createPost(userId: string, dto: CreatePostDto): Promise<Post> {
+  async createPost(userId: string, dto: CreatePostDto): Promise<Posts> {
     const { data, error } = await this.supabase.client
       .from('posts')
       .insert({
@@ -35,9 +37,30 @@ export class PostsService {
   }
 
   // ============================================
+  // RÉCUPÉRER TOUS LES POST
+  // ============================================
+  async getAllPosts(limit = 20, page = 1): Promise<Posts[]> {
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+
+    const { data, error } = await this.supabase.client
+      .from('posts')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .range(from, to);
+
+    if (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+
+    return data ?? [];
+  }
+
+
+  // ============================================
   // RÉCUPÉRER UN POST
   // ============================================
-  async getPostById(postId: string): Promise<Post> {
+  async getPostById(postId: string): Promise<Posts> {
     const { data, error } = await this.supabase.client
       .from('posts')
       .select('*, user:users(id, username, avatar_url)')
@@ -51,7 +74,7 @@ export class PostsService {
   // ============================================
   // RÉCUPÉRER LES POSTS D'UN USER
   // ============================================
-  async getPostsByUser(userId: string): Promise<Post[]> {
+  async getPostsByUser(userId: string): Promise<Posts[]> {
     const { data, error } = await this.supabase.client
       .from('posts')
       .select('*')
@@ -70,7 +93,7 @@ export class PostsService {
     postId: string,
     userId: string,
     dto: UpdatePostDto,
-  ): Promise<Post> {
+  ): Promise<Posts> {
     await this._checkOwnership(postId, userId);
 
     const { data, error } = await this.supabase.client

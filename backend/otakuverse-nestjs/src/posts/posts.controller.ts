@@ -8,11 +8,13 @@ import {
   Body,
   Request,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
+import { Posts } from './entities/post.entity';
 
 @Controller('posts')
 @UseGuards(JwtAuthGuard)
@@ -23,6 +25,15 @@ export class PostsController {
   create(@Request() req, @Body() dto: CreatePostDto) {
     return this.postsService.createPost(req.user.id, dto);
   }
+
+  @Get()
+  async getAllPosts(
+    @Query('limit') limit = 20,
+    @Query('page') page = 1,
+  ): Promise<Posts[]> {
+    return this.postsService.getAllPosts(+limit, +page);
+  }
+
 
   @Get(':id')
   findOne(@Param('id') id: string) {

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:otakuverse/screens/posts/creat_post_screen.dart';
+import 'package:otakuverse/screens/posts/create_post_screen.dart';
 import 'dart:math' as math;
 
 class CreatePostButton extends StatefulWidget {

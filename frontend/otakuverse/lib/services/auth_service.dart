@@ -15,7 +15,7 @@ class AuthService {
   }) async {
     try {
       final response = await _dio.post(
-        '${ApiConfig.baseUrl}/auth/signup',
+        '${ApiConfig.signup}',
         data: {
           'email': email,
           'password': password,
@@ -56,7 +56,7 @@ class AuthService {
   }) async {
     try {
       final response = await _dio.post(
-        '${ApiConfig.baseUrl}/auth/signin',
+        '${ApiConfig.signin}',
         data: {
           'email': email,
           'password': password,

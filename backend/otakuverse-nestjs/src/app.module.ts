@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { PostsModule } from './posts/posts.module';
 import { ProfilesModule } from './profile/profile.module';
+import { MessagesModule } from './messages/messages.module';
 
 @Module({
   imports: [
@@ -18,7 +19,8 @@ import { ProfilesModule } from './profile/profile.module';
     AuthModule,
     UsersModule,
     PostsModule,
-    ProfilesModule
+    ProfilesModule,
+    MessagesModule
   ],
   controllers: [AppController],
   providers: [AppService],
