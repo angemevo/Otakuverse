@@ -101,6 +101,11 @@ dependencies:
   google_maps_flutter: ^2.9.0
   geolocator: ^14.0.2
   geocoding: ^4.0.0
+
+  # ============================================
+  # GOOGLE AUTHENTIFICATION
+  # ============================================
+  google_sign_in: ^6.2.1
   
   # ============================================
   # UTILS & HELPERS
