@@ -54,6 +54,7 @@ class ApiConfig {
   static String updatePost(String postId) => '$baseUrl/posts/$postId';
   static String deletePost(String postId) => '$baseUrl/posts/$postId';
   static String get feed => '$baseUrl/posts/feed';
+  static String getPostUser(String userId) => '$baseUrl/posts/user/$userId';
   
   // ============================================
   // LIKES ENDPOINTS

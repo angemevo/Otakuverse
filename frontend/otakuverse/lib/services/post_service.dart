@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:otakuverse/config/api_config.dart';
 import 'package:otakuverse/models/post_model.dart';
@@ -43,6 +45,36 @@ class PostsService {
   }
 
   // ============================================
+  // FEED PRINCIPALE
+  // ============================================
+  Future<Map<String, dynamic>> getFeed({
+    int limit = 20,
+    String? cursor,
+  }) async {
+    try {
+      final response = await _dio.get(
+        '${ApiConfig.feed}',
+        queryParameters: {
+          'limit': limit,
+          if (cursor != null) 'cursor' : cursor,
+        },
+        options: await _authOptions()
+      );
+
+      final posts = (response.data['data'] as List)
+          .map((json) => PostModel.fromJson(json))
+          .toList();
+
+      return {
+        'succes': posts,
+        'nextCursor': response.data['next_cursor'],
+      };
+    } catch (e) {
+      return {'error': _handleError(e)};
+    }
+  }
+
+  // ============================================
   // RÉCUPÉRER UN POST
   // ============================================
   Future<Map<String, dynamic>> getPostById(String postId) async {
@@ -64,7 +96,7 @@ class PostsService {
   Future<Map<String, dynamic>> getPostsByUser(String userId) async {
     try {
       final response = await _dio.get(
-        '${ApiConfig.baseUrl}/posts/user/$userId',
+        '${ApiConfig.getPostUser}',
         options: await _authOptions(),
       );
 
