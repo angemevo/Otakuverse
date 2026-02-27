@@ -117,6 +117,11 @@ dependencies:
   # MISE À JOUR: Les deux packages doivent être compatibles intl 0.20.2
   flutter_form_builder: ^10.2.0
   form_builder_validators: ^11.1.2
+
+  # ============================================
+  # AUTHENTIFICATION GOOGLE
+  # ============================================
+  google_sign_in: ^6.2.1
   
   # ============================================
   # UI STYLING
@@ -188,6 +193,7 @@ flutter:
     - assets/icons/
     - assets/animations/
     - assets/logo/
+    - .env
 
   fonts:
     - family: Poppins

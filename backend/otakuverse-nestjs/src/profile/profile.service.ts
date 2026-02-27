@@ -25,13 +25,27 @@ export class ProfilesService {
   // CRÉER UN PROFIL (à l'inscription)
   // ============================================
   async createProfile(userId: string, displayName?: string): Promise<Profile> {
+    // Vérifier si un profil existe déjà pour éviter les doublons
+    const { data: existing } = await this.supabase.client
+      .from('profiles')
+      .select('id')
+      .eq('user_id', userId)
+      .single();
+
+    if (existing) return existing as Profile;
+
     const { data, error } = await this.supabase.client
       .from('profiles')
-      .insert({ user_id: userId, display_name: displayName })
+      .insert({
+        user_id: userId,
+        display_name: displayName ?? null,
+        created_at: new Date(),
+        updated_at: new Date(),
+      })
       .select()
       .single();
 
-    if (error) throw new Error(error.message);
+    if (error) throw new Error(`Erreur création profil: ${error.message}`);
     return data;
   }
 
@@ -46,7 +60,7 @@ export class ProfilesService {
       .select()
       .single();
 
-    if (error) throw new Error(error.message);
+    if (error) throw new Error(`Erreur mise à jour profil: ${error.message}`);
     return data;
   }
 
@@ -62,7 +76,7 @@ export class ProfilesService {
       .update({ is_private: newPrivacy, updated_at: new Date() })
       .eq('user_id', userId);
 
-    if (error) throw new Error(error.message);
+    if (error) throw new Error(`Erreur toggle privacy: ${error.message}`);
     return newPrivacy;
   }
 
@@ -70,9 +84,10 @@ export class ProfilesService {
   // INCRÉMENTER POSTS COUNT
   // ============================================
   async incrementPostsCount(userId: string): Promise<void> {
+    const profile = await this.getProfile(userId);
     const { error } = await this.supabase.client.rpc('increment_counter', {
       table_name: 'profiles',
-      row_id: userId,
+      row_id: profile.id, // ✅ id réel de la table profiles
       column_name: 'posts_count',
     });
     if (error) throw new Error(error.message);
@@ -82,10 +97,24 @@ export class ProfilesService {
   // INCRÉMENTER FOLLOWERS
   // ============================================
   async incrementFollowers(userId: string): Promise<void> {
+    const profile = await this.getProfile(userId);
     const { error } = await this.supabase.client.rpc('increment_counter', {
       table_name: 'profiles',
-      row_id: userId,
+      row_id: profile.id, // ✅ id réel de la table profiles
       column_name: 'followers_count',
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  // ============================================
+  // INCRÉMENTER FOLLOWING
+  // ============================================
+  async incrementFollowing(userId: string): Promise<void> {
+    const profile = await this.getProfile(userId);
+    const { error } = await this.supabase.client.rpc('increment_counter', {
+      table_name: 'profiles',
+      row_id: profile.id,
+      column_name: 'following_count',
     });
     if (error) throw new Error(error.message);
   }

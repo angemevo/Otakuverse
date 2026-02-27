@@ -78,7 +78,11 @@ class AppColors {
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
   );
-  
+
+  /// Bordure normale
+  static const Color border = Color(0xFF2A2A2A);
+
+
   // ============================================
   // COULEURS AVEC OPACITÉ
   // ============================================
@@ -90,6 +94,10 @@ class AppColors {
   /// Noir avec opacité pour overlays
   static Color blackWithOpacity(double opacity) => 
       deepBlack.withOpacity(opacity);
+
+  /// Noir avec opacité pour overlays
+  static Color successWithOpacity(double opacity) => 
+      successGreen.withOpacity(opacity);
   
   // ============================================
   // COULEURS SPÉCIFIQUES AUX FONCTIONNALITÉS

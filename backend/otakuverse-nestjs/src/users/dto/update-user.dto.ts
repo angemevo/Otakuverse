@@ -1,20 +1,36 @@
-import { IsString, MaxLength, IsOptional, IsUrl } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  MaxLength,
+  IsUrl,
+  IsPhoneNumber,
+  IsEnum,
+  IsDateString,
+} from 'class-validator';
 
 export class UpdateUserDto {
-  @IsString()
   @IsOptional()
+  @IsString()
   @MaxLength(100)
   display_name?: string;
 
-  @IsUrl()
   @IsOptional()
+  @IsUrl()
   avatar_url?: string;
 
-  @IsString()
   @IsOptional()
-  @MaxLength(500)
-  bio?: string;
+  @IsPhoneNumber()
+  phone?: string;
+
+  @IsOptional()
+  @IsDateString()
+  date_of_birth?: string;
+
+  @IsOptional()
+  @IsEnum(['male', 'female', 'other', 'prefer_not_to_say'])
+  gender?: string;
+
+  @IsOptional()
+  @IsString()
+  location?: string;
 }
-// - displayName?: string
-// - avatarUrl?: string
-// - bio?: string

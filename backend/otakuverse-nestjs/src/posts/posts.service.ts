@@ -39,7 +39,7 @@ export class PostsService {
   async getPostById(postId: string): Promise<Post> {
     const { data, error } = await this.supabase.client
       .from('posts')
-      .select('*, user:users(id, username, avatar_url)')
+      .select('*, user:users(id, username, display_name, avatar_url)')
       .eq('id', postId)
       .single();
 
@@ -50,17 +50,17 @@ export class PostsService {
   // ============================================
   // RÉCUPÉRER LES POSTS D'UN USER
   // ============================================
-    async getPostsByUser(userId: string): Promise<Post[]> {
-        const { data, error } = await this.supabase.client
-            .from('posts')
-            .select('*, user:users!posts_user_id_fkey(id, username, display_name, avatar_url)') // 👈 nom de la FK
-            .eq('user_id', userId)
-            .order('is_pinned', { ascending: false })
-            .order('created_at', { ascending: false });
+  async getPostsByUser(userId: string): Promise<Post[]> {
+    const { data, error } = await this.supabase.client
+      .from('posts')
+      .select('*, user:users!posts_user_id_fkey(id, username, display_name, avatar_url)')
+      .eq('user_id', userId)
+      .order('is_pinned', { ascending: false })
+      .order('created_at', { ascending: false });
 
-        if (error) throw new Error(error.message);
-        return data;
-    }
+    if (error) throw new Error(error.message);
+    return data;
+  }
 
   // ============================================
   // MODIFIER UN POST
@@ -117,86 +117,108 @@ export class PostsService {
   }
 
   // ============================================
-  // INCRÉMENTER LES COMPTEURS
+  // TOGGLE LIKE
   // ============================================
-    async toggleLike(postId: string, userId: string): Promise<{ liked: boolean }> {
-        // Vérifie si le like existe déjà
-        const { data: existing } = await this.supabase.client
-            .from('likes')
-            .select('id')
-            .eq('post_id', postId)
-            .eq('user_id', userId)
-            .single();
+  async toggleLike(postId: string, userId: string): Promise<{ liked: boolean }> {
+    const { data: existing } = await this.supabase.client
+      .from('likes')
+      .select('id')
+      .eq('target_id', postId)
+      .eq('target_type', 'post')
+      .eq('user_id', userId)
+      .single();
 
-        if (existing) {
-            // ❌ Déjà liké → on retire le like
-            await this.supabase.client
-            .from('likes')
-            .delete()
-            .eq('post_id', postId)
-            .eq('user_id', userId);
+    if (existing) {
+      await this.supabase.client
+        .from('likes')
+        .delete()
+        .eq('target_id', postId)
+        .eq('target_type', 'post')
+        .eq('user_id', userId);
 
-            await this.supabase.client
-            .from('posts')
-            .update({ likes_count: this.supabase.client.rpc('decrement', { x: 1 }) })
-            .eq('id', postId);
+      await this.supabase.client.rpc('decrement_counter', {
+        table_name: 'posts',
+        row_id: postId,
+        column_name: 'likes_count',
+      });
 
-            // Décrémente le compteur
-            await this.supabase.client.rpc('decrement_counter', {
-            table_name: 'posts',
-            row_id: postId,
-            column_name: 'likes_count',
-            });
+      return { liked: false };
+    } else {
+      await this.supabase.client
+        .from('likes')
+        .insert({
+          target_id: postId,
+          target_type: 'post',
+          user_id: userId,
+        });
 
-            return { liked: false };
-        } else {
-            // ✅ Pas encore liké → on ajoute le like
-            await this.supabase.client
-            .from('likes')
-            .insert({ post_id: postId, user_id: userId });
+      await this.supabase.client.rpc('increment_counter', {
+        table_name: 'posts',
+        row_id: postId,
+        column_name: 'likes_count',
+      });
 
-            await this.supabase.client.rpc('increment_counter', {
-            table_name: 'posts',
-            row_id: postId,
-            column_name: 'likes_count',
-            });
-
-            return { liked: true };
-        }
+      return { liked: true };
     }
+  }
 
-    // Vérifie si un user a liké un post
-    async hasLiked(postId: string, userId: string): Promise<boolean> {
-        const { data } = await this.supabase.client
-            .from('likes')
-            .select('id')
-            .eq('post_id', postId)
-            .eq('user_id', userId)
-            .single();
+  // ============================================
+  // HAS LIKED
+  // ============================================
+  async hasLiked(postId: string, userId: string): Promise<boolean> {
+    const { data } = await this.supabase.client
+      .from('likes')
+      .select('id')
+      .eq('target_id', postId)
+      .eq('target_type', 'post')
+      .eq('user_id', userId)
+      .single();
 
-        return !!data;
-    }
+    return !!data;
+  }
 
-    // Récupérer les post likés
-    async getLikedPosts(userId: string): Promise<Post[]> {
-        const { data, error } = await this.supabase.client
-            .from('likes')
-            .select('post:posts(*)')
-            .eq('user_id', userId)
-            .order('created_at', { ascending: false });
+  // ============================================
+  // GET LIKED POSTS
+  // ============================================
+  async getLikedPosts(userId: string): Promise<Post[]> {
+    const { data: likesData, error: likesError } = await this.supabase.client
+      .from('likes')
+      .select('target_id')
+      .eq('user_id', userId)
+      .eq('target_type', 'post')
+      .order('created_at', { ascending: false });
 
-        if (error) throw new Error(error.message);
-        return data.map((item: any) => item.post);
-    }
+    if (likesError) throw new Error(likesError.message);
+    if (!likesData || likesData.length === 0) return [];
 
+    const postIds = likesData.map((l: any) => l.target_id);
+
+    const { data: posts, error: postsError } = await this.supabase.client
+      .from('posts')
+      .select('*, user:users(id, username, display_name, avatar_url)')
+      .in('id', postIds);
+
+    if (postsError) throw new Error(postsError.message);
+    return posts;
+  }
+
+  // ============================================
+  // INCRÉMENTER COMMENTAIRES
+  // ============================================
   async incrementComments(postId: string): Promise<void> {
     await this._incrementCounter(postId, 'comments_count');
   }
 
+  // ============================================
+  // INCRÉMENTER PARTAGES
+  // ============================================
   async incrementShares(postId: string): Promise<void> {
     await this._incrementCounter(postId, 'shares_count');
   }
 
+  // ============================================
+  // INCRÉMENTER VUES
+  // ============================================
   async incrementViews(postId: string): Promise<void> {
     await this._incrementCounter(postId, 'views_count');
   }
@@ -224,10 +246,3 @@ export class PostsService {
     if (error) throw new Error(error.message);
   }
 }
-// - findAll(query): liste avec pagination
-// - findOne(id): trouver par ID
-// - findByUser(userId): posts d'un utilisateur
-// - create(userId, dto): créer post
-// - update(id, dto): modifier post
-// - remove(id): supprimer post
-// - getFeed(userId): feed personnalisé

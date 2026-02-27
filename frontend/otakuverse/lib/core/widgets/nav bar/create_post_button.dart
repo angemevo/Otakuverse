@@ -89,7 +89,7 @@ class _CreatePostButtonState extends State<CreatePostButton>
             // Positions en arc au-dessus du bouton
             final angles = [-math.pi / 2, -math.pi * 0.75, -math.pi * 0.25];
             final angle = angles[index];
-            const radius = 80.0;
+            const radius = 120.0;
 
             final centerX = position.dx + size.width / 2;
             final centerY = position.dy + size.height / 2;
@@ -109,8 +109,13 @@ class _CreatePostButtonState extends State<CreatePostButton>
                   ),
                 );
 
-                final currentX = centerX + math.cos(angle) * radius * curve.value - 24;
-                final currentY = centerY + math.sin(angle) * radius * curve.value - 24;
+                final screenSize = MediaQuery.of(context).size;
+
+                double currentX = centerX + math.cos(angle) * radius * curve.value - 24;
+                double currentY = centerY + math.sin(angle) * radius * curve.value - 24;
+
+                currentX = currentX.clamp(8.0, screenSize.width - 56.0);
+                currentY = currentY.clamp(8.0, screenSize.height - 80.0);
 
                 return Positioned(
                   left: currentX,

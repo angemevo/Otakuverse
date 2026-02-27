@@ -3,12 +3,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:otakuverse/core/constants/colors.dart';
 import 'package:otakuverse/models/profile_model.dart';
 import 'package:otakuverse/models/post_model.dart';
+import 'package:otakuverse/screens/auth/sign_in_screen.dart';
 import 'package:otakuverse/services/post_service.dart';
 import 'package:otakuverse/services/profile_service.dart';
 import 'package:otakuverse/services/storage_service.dart';
 import 'package:otakuverse/services/auth_service.dart';
 import 'package:otakuverse/screens/profile/edit_profile_screen.dart';
-import 'package:otakuverse/screens/auth/login_screen.dart';
 import 'package:get/get.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -191,7 +191,7 @@ class _ProfileScreenState extends State<ProfileScreen>
         ),
         content: Text(
           'Tu seras redirigé vers la page de connexion.',
-          style: GoogleFonts.inter(color: AppColors.mediumGray),
+          style: GoogleFonts.inter(color: AppColors.lightGray),
         ),
         actions: [
           TextButton(

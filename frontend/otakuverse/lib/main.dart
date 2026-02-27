@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:otakuverse/core/constants/assets.dart';
 import 'package:otakuverse/core/constants/colors.dart';
 import 'package:otakuverse/core/utils/helpers.dart';
-import 'package:otakuverse/screens/auth/login_screen.dart';
-import 'package:otakuverse/screens/auth/signup_screen.dart';
+import 'package:otakuverse/screens/auth/sign_in_screen.dart';
 import 'package:otakuverse/screens/navigation_page.dart';
 import 'package:otakuverse/services/api_service.dart';
 import 'package:otakuverse/services/auth_service.dart';
@@ -14,11 +15,16 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 void main() async {
   await WidgetsFlutterBinding.ensureInitialized();
 
+  // ✅ Charger les variables d'environnement
+  await dotenv.load(fileName: '.env');
+
+  await initializeDateFormatting('fr_FR', null);
   await StorageService().init();
   await ApiService().init();
+
   await Supabase.initialize(
-    url: 'https://nnrnikmguonlpfjcnvqr.supabase.co',
-    anonKey: 'sb_publishable_UjrmpKLQ4nMCb1VbZt1-OQ_x8Q6PjZp',
+    url: dotenv.env['SUPABASE_URL']!,
+    anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
   );
 
   runApp(const MyApp());
@@ -27,14 +33,14 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
       title: 'Otakuverse',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.crimsonRed),
+        scaffoldBackgroundColor: AppColors.deepBlack,
       ),
       home: const SplashScreen(),
     );
@@ -42,7 +48,7 @@ class MyApp extends StatelessWidget {
 }
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  const SplashScreen({super.key});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -58,22 +64,21 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _checkAuth() async {
-    // Attendre 2 secondes pour simuler un écran de splash
     await Future.delayed(const Duration(seconds: 2));
 
-    // Vérifier si l'utilisateur est authentifié
-    final isLogged = await _authService.isloggedIn();
+    try {
+      final isLogged = await _authService.isLoggedIn(); // ✅ camelCase corrigé
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    if (isLogged) {
-      // Naviguer vers l'écran principal
-      print('User is logged in, navigate to HomeScreen');
-      Helpers.navigateReplace(NavigationPage());
-
-    } else {
-      // Naviguer vers l'écran de connexion
-      print('User is not logged in, navigate to SignInScreen');
+      if (isLogged) {
+        Helpers.navigateReplace(NavigationPage());
+      } else {
+        Helpers.navigateReplace(SignInScreen()); // ✅ vers SignIn, pas SignUp
+      }
+    } catch (e) {
+      // En cas d'erreur on redirige vers SignIn par sécurité
+      if (!mounted) return;
       Helpers.navigateReplace(SignInScreen());
     }
   }
@@ -86,12 +91,20 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('Otakuverse', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.deepBlack),),
-            const SizedBox(height: 20),
-            
             Image.asset(AppAssets.logo, scale: 3),
-            const SizedBox(height: 20),
-            CircularProgressIndicator(),
+            const SizedBox(height: 32),
+            const Text(
+              'Otakuverse',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Colors.white, // ✅ CORRIGÉ — était deepBlack sur deepBlack
+              ),
+            ),
+            const SizedBox(height: 32),
+            const CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(AppColors.crimsonRed),
+            ),
           ],
         ),
       ),

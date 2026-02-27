@@ -160,28 +160,23 @@ class Helpers {
   
   /// Naviguer vers une page avec animation
   static Future<T?> navigateTo<T>(Widget page) async {
-    return await Get.to<T>(
-      () => page,
-      transition: Transition.cupertino,
-      duration: AppConstants.animationNormal,
+    return await Navigator.of(Get.context!).push<T>(
+      MaterialPageRoute(builder: (_) => page),
     );
   }
-  
+    
   /// Naviguer et remplacer
   static Future<T?> navigateReplace<T>(Widget page) async {
-    return await Get.off<T>(
-      () => page,
-      transition: Transition.cupertino,
-      duration: AppConstants.animationNormal,
+    return await Navigator.of(Get.context!).pushReplacement(
+      MaterialPageRoute(builder: (_) => page),
     );
   }
   
   /// Naviguer et supprimer tout l'historique
   static Future<T?> navigateOffAll<T>(Widget page) async {
-    return await Get.offAll<T>(
-      () => page,
-      transition: Transition.cupertino,
-      duration: AppConstants.animationNormal,
+    return await Navigator.of(Get.context!).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => page),
+      (route) => false,
     );
   }
   

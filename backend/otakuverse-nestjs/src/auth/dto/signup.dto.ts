@@ -1,24 +1,42 @@
-import { IsEmail, IsString, MinLength, MaxLength, IsOptional } from 'class-validator';
+import {
+  IsEmail,
+  IsString,
+  MinLength,
+  MaxLength,
+  IsOptional,
+  IsDateString,
+  IsEnum,
+  IsPhoneNumber,
+} from 'class-validator';
 
 export class SignupDto {
-  @IsEmail({}, { message: 'Email invalide' })
-  email: string;
+  @IsEmail()
+  email!: string;
 
   @IsString()
-  @MinLength(8, { message: 'Le mot de passe doit faire au moins 8 caractères' })
-  password: string;
+  @MinLength(8)
+  password!: string;
 
   @IsString()
-  @MinLength(3, { message: 'Le nom d\'utilisateur doit faire au moins 3 caractères' })
-  @MaxLength(30, { message: 'Le nom d\'utilisateur ne peut pas dépasser 30 caractères' })
-  username: string;
+  @MinLength(3)
+  @MaxLength(30)
+  username!: string;
 
-  @IsString()
+  @IsDateString()
+  date_of_birth!: string;
+
+  @IsEnum(['male', 'female', 'other', 'prefer_not_to_say'])
+  gender!: string;
+
   @IsOptional()
-  @MaxLength(100)
-  display_name?: string;
+  @IsString()
+  avatar_url?: string;
+
+  @IsOptional()
+  @IsPhoneNumber()
+  phone?: string;
+
+  @IsOptional()
+  @IsString()
+  location?: string;
 }
-// - email: string (IsEmail)
-// - password: string (MinLength(8))
-// - username: string (MinLength(3))
-// - displayName?: string (optional)

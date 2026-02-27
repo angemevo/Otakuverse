@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:otakuverse/core/constants/text_styles.dart';
 import 'package:otakuverse/core/utils/helpers.dart';
-import 'package:otakuverse/screens/auth/login_screen.dart';
+import 'package:otakuverse/screens/auth/sign_in_screen.dart';
 
 Widget buildSignInLink() {
     return Row(

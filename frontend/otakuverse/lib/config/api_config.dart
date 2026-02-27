@@ -1,4 +1,6 @@
 // lib/config/api_config.dart
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 
 class ApiConfig {
@@ -16,15 +18,20 @@ class ApiConfig {
     if (isProduction) {
       return 'https://api.otakuverse.com';
     }
-    
-    // DEV
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      return 'http://10.0.2.2:3000'; // Émulateur Android
-    } else if (defaultTargetPlatform == TargetPlatform.iOS) {
-      return 'http://localhost:3000'; // Émulateur iOS
-    } else {
-      return 'http://192.168.1.100:3000'; // Device physique (TON IP)
+
+    if (kIsWeb) {
+      return 'http://localhost:3000';
     }
+
+    if (Platform.isAndroid) {
+      return 'http://192.168.1.3:3000'; // IP de ton PC
+    }
+
+    if (Platform.isIOS) {
+      return 'http://192.168.1.3:3000';
+    }
+
+    return 'http://192.168.1.3:3000';
   }
   
   // ============================================

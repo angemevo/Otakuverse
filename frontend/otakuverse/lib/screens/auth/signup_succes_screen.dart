@@ -1,94 +1,148 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:otakuverse/core/constants/colors.dart';
 import 'package:otakuverse/core/utils/helpers.dart';
-import 'package:otakuverse/screens/home_screen.dart';
+import 'package:otakuverse/models/sign_up_data.dart';
+import 'package:otakuverse/screens/navigation_page.dart';
+import 'package:otakuverse/screens/onboarding_anime_screen.dart';
 
-class SignupSuccessScreen extends StatefulWidget {
+
+class SignupSuccessScreen extends StatelessWidget {
   final String username;
+  final SignupData signupData;
 
   const SignupSuccessScreen({
     super.key,
     required this.username,
+    required this.signupData,
   });
-
-  @override
-  State<SignupSuccessScreen> createState() => _SignupSuccessScreenState();
-}
-
-class _SignupSuccessScreenState extends State<SignupSuccessScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
-  late Animation<double> _fadeAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 700),
-    );
-
-    _scaleAnimation = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.elasticOut,
-    );
-
-    _fadeAnimation = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeIn,
-    );
-
-    _controller.forward();
-
-    // Redirection automatique
-    Timer(const Duration(seconds: 2), () {
-      if (!mounted) return;
-      Helpers.navigateOffAll(HomeScreen());
-    });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
-      body: Center(
-        child: FadeTransition(
-          opacity: _fadeAnimation,
+      backgroundColor: AppColors.darkGray,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              ScaleTransition(
-                scale: _scaleAnimation,
+              // Animation check avec gradient rouge
+              Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.successWithOpacity(0.2),
+                      AppColors.crimsonWithOpacity(0.2),
+                    ],
+                  ),
+                  shape: BoxShape.circle,
+                ),
                 child: const Icon(
-                  Icons.check_circle_rounded,
-                  size: 96,
-                  color: Color(0xFF4CAF50),
+                  Icons.check_circle,
+                  size: 80,
+                  color: AppColors.successGreen,
                 ),
               ),
-              const SizedBox(height: 24),
+
+              const SizedBox(height: 40),
+
+              // Titre
               const Text(
-                'Inscription réussie',
+                'Bienvenue sur Otakuverse !',
+                textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 24,
+                  fontSize: 32,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
               ),
-              const SizedBox(height: 8),
+
+              const SizedBox(height: 16),
+
+              // Message
               Text(
-                'Bienvenue sur Otakuverse, ${widget.username} 👋',
+                'Votre compte @$username a été créé avec succès',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[400],
+                  fontSize: 16,
+                  color: AppColors.lightGray,
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // Info onboarding
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.crimsonWithOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppColors.crimsonWithOpacity(0.3),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.info_outline,
+                      color: AppColors.crimsonRed,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Dis-nous ce que tu aimes pour personnaliser ton expérience !',
+                        style: TextStyle(
+                          color: AppColors.lightGray,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 60),
+
+              // Bouton vers onboarding
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Helpers.navigateReplace(OnboardingAnimeScreen(signupData: signupData));
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.crimsonRed,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Continuer',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Bouton passer
+              TextButton(
+                onPressed: () {
+                  Helpers.navigateReplace(NavigationPage());
+                },
+                child: const Text(
+                  'Passer pour le moment',
+                  style: TextStyle(
+                    color: AppColors.lightGray,
+                    fontSize: 14,
+                  ),
                 ),
               ),
             ],
