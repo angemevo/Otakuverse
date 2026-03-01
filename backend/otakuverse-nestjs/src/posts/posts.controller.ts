@@ -14,6 +14,7 @@ import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { Posts } from './entities/post.entity';
 
 @Controller('posts')
 @UseGuards(JwtAuthGuard)

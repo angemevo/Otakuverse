@@ -74,7 +74,7 @@ export class PostsService {
   // ============================================
   // RÉCUPÉRER LES POSTS D'UN USER
   // ============================================
-  async getPostsByUser(userId: string): Promise<Post[]> {
+  async getPostsByUser(userId: string): Promise<Posts[]> {
     const { data, error } = await this.supabase.client
       .from('posts')
       .select('*, user:users!posts_user_id_fkey(id, username, display_name, avatar_url)')
@@ -82,9 +82,6 @@ export class PostsService {
       .order('is_pinned', { ascending: false })
       .order('created_at', { ascending: false });
 
-    if (error) throw new Error(error.message);
-    return data;
-  }
     if (error) throw new Error(error.message);
     return data;
   }
@@ -201,13 +198,13 @@ export class PostsService {
       .eq('user_id', userId)
       .single();
 
-    return !!data;
+    return !! data;
   }
 
   // ============================================
   // GET LIKED POSTS
   // ============================================
-  async getLikedPosts(userId: string): Promise<Post[]> {
+  async getLikedPosts(userId: string): Promise<Posts[]> {
     const { data: likesData, error: likesError } = await this.supabase.client
       .from('likes')
       .select('target_id')
