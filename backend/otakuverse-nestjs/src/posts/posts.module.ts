@@ -1,12 +1,15 @@
-import { Module } from '@nestjs/common';
-import { PostsService } from './posts.service';
-import { PostsController } from './posts.controller';
-import { SupabaseService } from '../database/supabase.service'; // 👈
+import { Module } from "@nestjs/common";
+import { PostsController } from "./posts.controller";
+import { PostsService } from "./posts.service";
+import { DatabaseModule } from "@/database/database.module";
+
 
 @Module({
-  controllers: [PostsController],
-  providers: [PostsService, SupabaseService], 
+    controllers: [PostsController],
+    providers:[PostsService],
+    exports:[PostsService],
+    imports:[DatabaseModule]
 })
-export class PostsModule {}
+export class PostsModule{}
 // - Import DatabaseModule
 // - Provider PostsService

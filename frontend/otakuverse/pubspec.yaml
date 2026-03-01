@@ -101,6 +101,11 @@ dependencies:
   google_maps_flutter: ^2.9.0
   geolocator: ^14.0.2
   geocoding: ^4.0.0
+
+  # ============================================
+  # GOOGLE AUTHENTIFICATION
+  # ============================================
+  google_sign_in: ^6.2.1
   
   # ============================================
   # UTILS & HELPERS
@@ -117,11 +122,6 @@ dependencies:
   # MISE À JOUR: Les deux packages doivent être compatibles intl 0.20.2
   flutter_form_builder: ^10.2.0
   form_builder_validators: ^11.1.2
-
-  # ============================================
-  # AUTHENTIFICATION GOOGLE
-  # ============================================
-  google_sign_in: ^6.2.1
   
   # ============================================
   # UI STYLING

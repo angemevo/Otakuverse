@@ -14,4 +14,3 @@ export class UpdatePostDto {
   @IsBoolean()
   allow_comments?: boolean;
 }
-// - caption?: string

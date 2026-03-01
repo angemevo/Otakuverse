@@ -14,11 +14,11 @@ export class CreatePostDto {
     @MaxLength(2200)
     caption!: string;
 
-    @IsOptional()
     @IsArray()
+    @ArrayMinSize(1)
     @ArrayMaxSize(10)
     @IsUrl({}, { each: true })
-    media_urls?: string[];
+    media_urls!: string[];
 
     @IsOptional()
     @IsString()

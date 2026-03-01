@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:otakuverse/models/stories_model.dart';
 
 class StoryAvatar extends StatelessWidget {
-  final Story story;
+  final StoryModel story;
   final VoidCallback onTap;
   
   const StoryAvatar({super.key, required this.story, required this.onTap});
@@ -36,7 +36,7 @@ class StoryAvatar extends StatelessWidget {
                 ),
                 child: CircleAvatar(
                   radius: 28,
-                  backgroundImage: NetworkImage(story.avatarUrl),
+                  backgroundImage: NetworkImage(story.avatarUrl!),
                 ),
               ),
             ),

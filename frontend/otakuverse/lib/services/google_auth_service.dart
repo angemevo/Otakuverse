@@ -1,43 +1,64 @@
-import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class GoogleAuthService {
+  static final GoogleAuthService _instance = GoogleAuthService._internal();
+  factory GoogleAuthService() => _instance;
+  GoogleAuthService._internal();
+
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: ['email', 'profile'],
   );
 
-  /// Lance le flow Google Sign-In et retourne les données utilisateur
+  /// Se connecter avec Google
   Future<Map<String, dynamic>?> signInWithGoogle() async {
     try {
-      // Déconnexion préalable si tu veux forcer le choix du compte
-      // await _googleSignIn.signOut();
+      print('🔵 Début Google Sign-In...');
 
+      // Déclencher le flow de connexion Google
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) return null; // Annulé par l'utilisateur
 
+      if (googleUser == null) {
+        print('⚠️  Connexion Google annulée');
+        return null;
+      }
+
+      print('✅ Utilisateur Google: ${googleUser.email}');
+
+      // Obtenir les détails d'authentification
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
 
+      print('✅ Token Google obtenu');
+
+      // Retourner les infos utilisateur
       return {
-        'sub': googleUser.id,                     // Google user ID
         'email': googleUser.email,
         'displayName': googleUser.displayName,
         'photoUrl': googleUser.photoUrl,
-        'idToken': googleAuth.idToken,           // Token JWT Google (optionnel)
-        'accessToken': googleAuth.accessToken,   // Token OAuth (optionnel)
+        'idToken': googleAuth.idToken,
+        'accessToken': googleAuth.accessToken,
       };
     } catch (e) {
-      debugPrint('Erreur Google Sign-In: $e');
+      print('❌ Erreur Google Sign-In: $e');
       return null;
     }
   }
 
-  /// Déconnexion Google
+  /// Se déconnecter de Google
   Future<void> signOut() async {
     try {
       await _googleSignIn.signOut();
+      print('✅ Déconnexion Google réussie');
     } catch (e) {
-      debugPrint('Erreur déconnexion Google: $e');
+      print('❌ Erreur déconnexion Google: $e');
     }
   }
+
+  /// Vérifier si l'utilisateur est connecté
+  Future<bool> isSignedIn() async {
+    return await _googleSignIn.isSignedIn();
+  }
+
+  /// Obtenir l'utilisateur actuel
+  GoogleSignInAccount? get currentUser => _googleSignIn.currentUser;
 }
