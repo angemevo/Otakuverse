@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:otakuverse/core/constants/colors.dart';
-import 'package:otakuverse/core/constants/text_styles.dart';
+import 'package:otakuverse/core/widgets/home/stories/stories_bar.dart';
 import 'package:otakuverse/core/widgets/home/posts/posts_card.dart';
-import 'package:otakuverse/core/widgets/home/stories/story_avatar.dart';
 import 'package:otakuverse/models/post_model.dart';
-import 'package:otakuverse/models/stories_model.dart';
+import 'package:otakuverse/models/stories/stories_model.dart';
+import 'package:otakuverse/screens/posts/create_post_screen.dart';
 import 'package:otakuverse/services/post_service.dart';
+import 'package:otakuverse/services/stories_service.dart';
 import 'package:otakuverse/services/storage_service.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -15,49 +17,44 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  // ============================================
-  // STATE
-  // ============================================
+class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMixin {
+
+  @override
+  bool get wantKeepAlive => true; 
+
+  // Posts
   List<PostModel> _posts = [];
   Map<String, bool> _likedPosts = {};
-  bool _isLoading = true;
+  bool _isLoading = false;
   String? _errorMessage;
-  List<StoryModel> _stories = [];
+  String? _currentUserId;
 
-  // final List<Story> stories = [
-  //   Story(
-  //     username: 'Sh4dx',
-  //     avatarUrl: 'https://i.pravatar.cc/150?img=1',
-  //     imageUrls: [
-  //       'https://picsum.photos/400/700?random=1',
-  //       'https://picsum.photos/400/700?random=2',
-  //     ],
-  //   ),
-  //   Story(
-  //     username: 'Naruto_fan',
-  //     avatarUrl: 'https://i.pravatar.cc/150?img=2',
-  //     imageUrls: ['https://picsum.photos/400/700?random=3'],
-  //   ),
-  //   Story(
-  //     username: 'OtakuKing',
-  //     avatarUrl: 'https://i.pravatar.cc/150?img=3',
-  //     imageUrls: [
-  //       'https://picsum.photos/400/700?random=4',
-  //       'https://picsum.photos/400/700?random=5',
-  //       'https://picsum.photos/400/700?random=6',
-  //     ],
-  //     seen: true,
-  //   ),
-  // ];
+  // Stories
+  List<StoryModel> _myStories = [];
+  Map<String, List<StoryModel>> _storiesByUser = {};
 
-  // ============================================
-  // INIT
-  // ============================================
   @override
   void initState() {
     super.initState();
-    _loadPosts();
+    _loadData();
+  }
+
+  // ============================================
+  // CHARGEMENT DES DONNÉES
+  // ============================================
+  Future<void> _loadData() async {
+    await Future.wait([
+      _loadUserData(),
+      _loadPosts(),
+      _loadStories(),
+    ]);
+  }
+
+  Future<void> _loadUserData() async {
+    final userData = await StorageService().getUserData();
+    if (mounted) {
+      setState(() => _currentUserId = userData?['id']);
+    }
   }
 
   Future<void> _loadPosts() async {
@@ -67,62 +64,159 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     try {
-      final userData = await StorageService().getUserData();
-      final userId = userData?['id'];
-
-      if (userId == null) {
-        setState(() {
-          _errorMessage = 'Utilisateur non connecté';
-          _isLoading = false;
-        });
-        return;
-      }
-
-      final result = await PostsService().getPostsByUser(userId);
+      print('🔵 === LOADING POSTS ===');
+      
+      final result = await PostsService().getAllPosts(limit: 20, page: 1);
 
       if (result['success'] != null) {
         final posts = result['success'] as List<PostModel>;
+        
+        print('✅ Loaded ${posts.length} posts');
 
-        // Vérifie lesquels sont likés
+        // Vérifier lesquels sont likés
         final Map<String, bool> likedMap = {};
+        
         for (final post in posts) {
-          final liked = await PostsService().hasLiked(post.id);
-          likedMap[post.id] = liked['success'] ?? false;
+          try {
+            final likedResult = await PostsService().hasLiked(post.id);
+            
+            if (likedResult.containsKey('success')) {
+              final isLiked = likedResult['success'];
+              
+              if (isLiked is bool) {
+                likedMap[post.id] = isLiked;
+              } else if (isLiked is int) {
+                likedMap[post.id] = isLiked == 1;
+              } else if (isLiked is String) {
+                likedMap[post.id] = isLiked.toLowerCase() == 'true';
+              } else {
+                likedMap[post.id] = false;
+              }
+            } else {
+              likedMap[post.id] = false;
+            }
+          } catch (e) {
+            print('❌ Error checking like for post ${post.id}: $e');
+            likedMap[post.id] = false;
+          }
         }
 
-        setState(() {
-          _posts = posts;
-          _likedPosts = likedMap;
-        });
+        if (mounted) {
+          setState(() {
+            _posts = posts;
+            _likedPosts = likedMap;
+          });
+        }
+        
+        print('✅ Posts loaded successfully');
       } else {
-        setState(() => _errorMessage = result['error']);
+        print('❌ Error in result: ${result['error']}');
+        if (mounted) {
+          setState(() => _errorMessage = result['error']);
+        }
       }
-    } catch (e) {
-      setState(() => _errorMessage = e.toString());
+    } catch (e, stackTrace) {
+      print('❌ Fatal error loading posts: $e');
+      print('Stack trace: $stackTrace');
+      if (mounted) {
+        setState(() => _errorMessage = e.toString());
+      }
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _loadStories() async {
+    try {
+      print('🔵 Loading stories...');
+
+      final result = await StoriesService().getAllStories();
+
+      if (result['success'] != null) {
+        final stories = result['success'] as List<StoryModel>;
+        
+        print('✅ Loaded ${stories.length} stories');
+
+        // Séparer mes stories et celles des autres
+        final myStories = <StoryModel>[];
+        final storiesByUser = <String, List<StoryModel>>{};
+
+        for (final story in stories) {
+          if (story.userId == _currentUserId) {
+            myStories.add(story);
+          } else {
+            if (!storiesByUser.containsKey(story.userId)) {
+              storiesByUser[story.userId] = [];
+            }
+            storiesByUser[story.userId]!.add(story);
+          }
+        }
+
+        if (mounted) {
+          setState(() {
+            _myStories = myStories;
+            _storiesByUser = storiesByUser;
+          });
+        }
+      } else {
+        print('⚠️ Error loading stories: ${result['error']}');
+        if (mounted) {
+          setState(() {
+            _myStories = [];
+            _storiesByUser = {};
+          });
+        }
+      }
+    } catch (e, stackTrace) {
+      print('❌ Fatal error loading stories: $e');
+      print('Stack trace: $stackTrace');
+      
+      if (mounted) {
+        setState(() {
+          _myStories = [];
+          _storiesByUser = {};
+        });
+      }
     }
   }
 
   // ============================================
-  // LIKE
+  // GESTION DES LIKES
   // ============================================
-  Future<void> _handleLike(String postId) async {
-    final result = await PostsService().toggleLike(postId);
+  Future<void> _handleLike(int index) async {
+    final post = _posts[index];
+    final wasLiked = _likedPosts[post.id] ?? false;
 
-    if (result['success'] != null) {
-      final isNowLiked = result['success']['liked'] as bool;
-      setState(() {
-        _likedPosts[postId] = isNowLiked;
+    // Optimistic update
+    setState(() {
+      _likedPosts[post.id] = !wasLiked;
+      _posts[index] = post.copyWith(
+        likesCount: post.likesCount + (!wasLiked ? 1 : -1),
+      );
+    });
 
-        // Mise à jour optimiste du compteur
-        final index = _posts.indexWhere((p) => p.id == postId);
-        if (index != -1) {
-          _posts[index] = _posts[index].copyWith(
-            likesCount: _posts[index].likesCount + (isNowLiked ? 1 : -1),
+    try {
+      await PostsService().toggleLike(post.id);
+    } catch (e) {
+      // Rollback si erreur
+      if (mounted) {
+        setState(() {
+          _likedPosts[post.id] = wasLiked;
+          _posts[index] = post.copyWith(
+            likesCount: post.likesCount + (wasLiked ? 1 : -1),
           );
-        }
-      });
+        });
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('❌ Erreur lors du like'),
+            backgroundColor: AppColors.errorRed,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
     }
   }
 
@@ -131,100 +225,249 @@ class _HomeScreenState extends State<HomeScreen> {
   // ============================================
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       backgroundColor: AppColors.deepBlack,
-      appBar: AppBar(
-        backgroundColor: AppColors.deepBlack,
-        leading: Image.asset("assets/logo/otakuverse_logo.png"),
-        title: Text('Otakuverse', style: AppTextStyles.appBarTitle),
-      ),
-      body: SafeArea(
-        child: RefreshIndicator(
-          color: AppColors.crimsonRed,
-          backgroundColor: AppColors.deepBlack,
-          onRefresh: _loadPosts,
-          child: CustomScrollView(
-            slivers: [
-              // Stories
+      body: RefreshIndicator(
+        onRefresh: _loadData,
+        color: AppColors.crimsonRed,
+        backgroundColor: AppColors.darkGray,
+        child: CustomScrollView(
+          slivers: [
+            // ============================================
+            // APPBAR STICKY
+            // ============================================
+            SliverAppBar(
+              backgroundColor: AppColors.deepBlack,
+              elevation: 0,
+              pinned: true,
+              floating: false,
+              snap: false,
+              title: Text(
+                'Otakuverse',
+                style: GoogleFonts.poppins(
+                  color: AppColors.crimsonRed,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 24,
+                ),
+              ),
+              actions: [
+                IconButton(
+                  icon: const Icon(
+                    Icons.add_box_outlined,
+                    color: AppColors.pureWhite,
+                    size: 28,
+                  ),
+                  onPressed: () async {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const CreatePostScreen(),
+                      ),
+                    );
+                    if (result == true) {
+                      _loadPosts();
+                    }
+                  },
+                ),
+                const SizedBox(width: 8),
+              ],
+            ),
+
+            // ============================================
+            // BARRE DE STORIES (disparaît au scroll)
+            // ============================================
+            if (_currentUserId != null)
               SliverToBoxAdapter(
-                child: SizedBox(
-                  height: 100,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    itemCount: _stories.length,
-                    itemBuilder: (context, index) {
-                      return StoryAvatar(
-                        story: _stories[index],
-                        onTap: () {},
-                      );
-                    },
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    StoriesBar(
+                      currentUserId: _currentUserId!,
+                      myStories: _myStories,
+                      storiesByUser: _storiesByUser,
+                      onRefresh: _loadStories,
+                    ),
+                    // const Divider(
+                    //   height: 1,
+                    //   color: AppColors.mediumGray,
+                    //   thickness: 1,
+                    // ),
+                  ],
+                ),
+              ),
+
+            // ============================================
+            // LOADING STATE
+            // ============================================
+            if (_isLoading)
+              const SliverFillRemaining(
+                child: Center(
+                  child: CircularProgressIndicator(
+                    color: AppColors.crimsonRed,
+                    strokeWidth: 3,
                   ),
                 ),
               ),
 
-              const SliverToBoxAdapter(child: SizedBox(height: 12)),
-
-              // États
-              if (_isLoading)
-                const SliverFillRemaining(
-                  child: Center(
-                    child: CircularProgressIndicator(color: AppColors.crimsonRed),
-                  ),
-                )
-              else if (_errorMessage != null)
-                SliverFillRemaining(
-                  child: Center(
+            // ============================================
+            // ERROR STATE
+            // ============================================
+            if (!_isLoading && _errorMessage != null)
+              SliverFillRemaining(
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.error_outline, color: AppColors.mediumGray, size: 48),
-                        const SizedBox(height: 12),
-                        Text(_errorMessage!, style: const TextStyle(color: AppColors.mediumGray)),
+                        const Icon(
+                          Icons.error_outline,
+                          color: AppColors.errorRed,
+                          size: 64,
+                        ),
                         const SizedBox(height: 16),
-                        TextButton(
-                          onPressed: _loadPosts,
-                          child: const Text(
-                            'Réessayer',
-                            style: TextStyle(color: AppColors.crimsonRed),
+                        Text(
+                          'Erreur',
+                          style: GoogleFonts.poppins(
+                            color: AppColors.pureWhite,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          _errorMessage!,
+                          style: GoogleFonts.inter(
+                            color: AppColors.mediumGray,
+                            fontSize: 14,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 24),
+                        ElevatedButton.icon(
+                          onPressed: _loadData,
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Réessayer'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.crimsonRed,
+                            foregroundColor: AppColors.pureWhite,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 12,
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
-                )
-              else if (_posts.isEmpty)
-                const SliverFillRemaining(
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.post_add, color: AppColors.mediumGray, size: 48),
-                        SizedBox(height: 12),
-                        Text(
-                          'Aucun post pour le moment',
-                          style: TextStyle(color: AppColors.mediumGray),
+                ),
+              ),
+
+            // ============================================
+            // EMPTY STATE
+            // ============================================
+            if (!_isLoading && _errorMessage == null && _posts.isEmpty)
+              SliverFillRemaining(
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.photo_library_outlined,
+                        color: AppColors.mediumGray,
+                        size: 80,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Aucun post pour le moment',
+                        style: GoogleFonts.poppins(
+                          color: AppColors.pureWhite,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Sois le premier à partager quelque chose !',
+                        style: GoogleFonts.inter(
+                          color: AppColors.mediumGray,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton.icon(
+                        onPressed: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const CreatePostScreen(),
+                            ),
+                          );
+                          if (result == true) {
+                            _loadPosts();
+                          }
+                        },
+                        icon: const Icon(Icons.add),
+                        label: const Text('Créer un post'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.crimsonRed,
+                          foregroundColor: AppColors.pureWhite,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                )
-              else
-                SliverList(
+                ),
+              ),
+
+            // ============================================
+            // LISTE DES POSTS
+            // ============================================
+            if (!_isLoading && _errorMessage == null && _posts.isNotEmpty)
+              SliverPadding(
+                padding: const EdgeInsets.only(top: 8),
+                sliver: SliverList(
                   delegate: SliverChildBuilderDelegate(
-                    (context, index) => PostCard(
-                      post: _posts[index],
-                      isLiked: _likedPosts[_posts[index].id] ?? false,
-                      onLike: () => _handleLike(_posts[index].id),
-                      onComment: () async {
-                        await PostsService().incrementComment(_posts[index].id);
-                      },
-                    ),
+                    (context, index) {
+                      final post = _posts[index];
+                      final isLiked = _likedPosts[post.id] ?? false;
+
+                      return PostCard(
+                        post: post,
+                        isLiked: isLiked,
+                        onLike: () => _handleLike(index),
+                        onComment: () {
+                          // TODO: Ouvrir les commentaires
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Commentaires à venir !'),
+                              duration: Duration(seconds: 1),
+                            ),
+                          );
+                        },
+                        onShare: () {
+                          // TODO: Partager
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Partage à venir !'),
+                              duration: Duration(seconds: 1),
+                            ),
+                          );
+                        },
+                      );
+                    },
                     childCount: _posts.length,
                   ),
                 ),
-            ],
-          ),
+              ),
+          ],
         ),
       ),
     );

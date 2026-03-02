@@ -1,3 +1,5 @@
+// models/sign_up_data.dart
+
 class SignupData {
   // Step 1
   String? email;
@@ -19,7 +21,22 @@ class SignupData {
   List<String> favoriteAnimes = [];
   List<String> favoriteGames = [];
 
-  SignupData();
+  // ✅ CONSTRUCTEUR MODIFIÉ - Accepte des paramètres nommés optionnels
+  SignupData({
+    this.email,
+    this.password,
+    this.username,
+    this.phone,
+    this.dateOfBirth,
+    this.gender,
+    this.avatarPath,
+    this.location,
+    List<String>? favoriteAnimes,
+    List<String>? favoriteGames,
+  }) {
+    this.favoriteAnimes = favoriteAnimes ?? [];
+    this.favoriteGames = favoriteGames ?? [];
+  }
 
   bool isComplete() {
     return email != null &&

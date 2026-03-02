@@ -16,6 +16,7 @@ export class CreatePostDto {
 
     @IsArray()
     @ArrayMinSize(1)
+    @IsOptional() 
     @ArrayMaxSize(10)
     @IsUrl({}, { each: true })
     media_urls!: string[];

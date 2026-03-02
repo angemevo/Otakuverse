@@ -1,3 +1,5 @@
+// src/auth/auth.controller.ts
+
 import {
   Controller,
   Post,
@@ -7,19 +9,23 @@ import {
   Request,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { UsersService } from '../users/users.service';
 import { SignupDto } from './dto/signup.dto';
 import { SigninDto } from './dto/signin.dto';
 import { OnboardingDto } from './dto/onboarding.dto';
+import { GoogleSignInDto } from './dto/google-signin.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
-  [x: string]: any;
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly usersService: UsersService,
+  ) {}
 
   /**
    * POST /auth/signup
-   * ✅ MODIFIÉ : sans display_name et bio
+   * Inscription avec email/password
    */
   @Post('signup')
   async signup(@Body() signupDto: SignupDto) {
@@ -28,7 +34,7 @@ export class AuthController {
 
   /**
    * POST /auth/signin
-   * ✅ Inchangé
+   * Connexion avec email/password
    */
   @Post('signin')
   async signin(@Body() signinDto: SigninDto) {
@@ -36,8 +42,17 @@ export class AuthController {
   }
 
   /**
+   * POST /auth/google
+   * Connexion avec Google
+   */
+  @Post('google')
+  async googleSignIn(@Body() googleSignInDto: GoogleSignInDto) {
+    return this.authService.signInWithGoogle(googleSignInDto);
+  }
+
+  /**
    * POST /auth/onboarding
-   * ✅ NOUVEAU : Enregistrer les préférences
+   * Enregistrer les préférences après inscription
    */
   @Post('onboarding')
   @UseGuards(JwtAuthGuard)
@@ -47,13 +62,13 @@ export class AuthController {
 
   /**
    * GET /auth/me
-   * ✅ Inchangé
+   * Récupérer les infos de l'utilisateur connecté
    */
   @Get('me')
   @UseGuards(JwtAuthGuard)
   async getMe(@Request() req) {
     const user = await this.usersService.findById(req.user.userId);
-    
+
     return {
       user: {
         id: user.id,
@@ -61,23 +76,13 @@ export class AuthController {
         username: user.username,
         display_name: user.display_name,
         avatar_url: user.avatar_url,
-        bio: user.bio,
         date_of_birth: user.date_of_birth,
         gender: user.gender,
         location: user.location,
-        favorite_animes: user.favorite_animes,  // ✅ Nouveau
-        favorite_games: user.favorite_games,    // ✅ Nouveau
+        favorite_animes: user.favorite_animes,
+        favorite_games: user.favorite_games,
         created_at: user.created_at,
       },
     };
-  }
-
-  /**
-   * POST /auth/google
-   * ✅ Inchangé
-   */
-  @Post('google')
-  async googleSignIn(@Body() googleData: any) {
-    return this.authService.signInWithGoogle(googleData);
   }
 }

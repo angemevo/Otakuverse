@@ -1,6 +1,9 @@
+// screens/profile/profile_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:otakuverse/core/constants/colors.dart';
+import 'package:otakuverse/core/widgets/smart_image.dart';  // ✅ AJOUTÉ
 import 'package:otakuverse/models/profile_model.dart';
 import 'package:otakuverse/models/post_model.dart';
 import 'package:otakuverse/screens/auth/sign_in_screen.dart';
@@ -68,11 +71,11 @@ class _ProfileScreenState extends State<ProfileScreen>
       final postsResult = await PostsService().getPostsByUser(targetId!);
 
       if (_isMe) {
-      final likedResult = await PostsService().getLikedPosts(_currentUserId!);
-      if (likedResult['success'] != null) {
-        _likedPosts = likedResult['success'] as List<PostModel>;
+        final likedResult = await PostsService().getLikedPosts();
+        if (likedResult['success'] != null) {
+          _likedPosts = likedResult['success'] as List<PostModel>;
+        }
       }
-    }
 
       if (mounted) {
         setState(() {
@@ -113,7 +116,8 @@ class _ProfileScreenState extends State<ProfileScreen>
         children: [
           const SizedBox(height: 8),
           Container(
-            width: 40, height: 4,
+            width: 40,
+            height: 4,
             decoration: BoxDecoration(
               color: AppColors.mediumGray,
               borderRadius: BorderRadius.circular(2),
@@ -122,9 +126,10 @@ class _ProfileScreenState extends State<ProfileScreen>
           const SizedBox(height: 16),
           _settingsItem(Icons.edit_outlined, 'Modifier le profil', () {
             Navigator.pop(context);
-            Navigator.push(context,
-              MaterialPageRoute(builder: (_) => EditProfileScreen(profile: _profile!))
-            ).then((_) => _loadData());
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => EditProfileScreen(profile: _profile!))).then((_) => _loadData());
           }),
           _settingsItem(Icons.lock_outline, 'Changer le mot de passe', () {
             Navigator.pop(context);
@@ -162,7 +167,8 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  Widget _settingsItem(IconData icon, String label, VoidCallback onTap, {Color? color}) {
+  Widget _settingsItem(IconData icon, String label, VoidCallback onTap,
+      {Color? color}) {
     return ListTile(
       leading: Icon(icon, color: color ?? AppColors.pureWhite, size: 22),
       title: Text(
@@ -173,7 +179,8 @@ class _ProfileScreenState extends State<ProfileScreen>
         ),
       ),
       trailing: color == null
-          ? const Icon(Icons.arrow_forward_ios, color: AppColors.mediumGray, size: 14)
+          ? const Icon(Icons.arrow_forward_ios,
+              color: AppColors.mediumGray, size: 14)
           : null,
       onTap: onTap,
     );
@@ -187,7 +194,8 @@ class _ProfileScreenState extends State<ProfileScreen>
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
           'Se déconnecter ?',
-          style: GoogleFonts.poppins(color: AppColors.pureWhite, fontWeight: FontWeight.w600),
+          style: GoogleFonts.poppins(
+              color: AppColors.pureWhite, fontWeight: FontWeight.w600),
         ),
         content: Text(
           'Tu seras redirigé vers la page de connexion.',
@@ -196,7 +204,8 @@ class _ProfileScreenState extends State<ProfileScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Annuler', style: GoogleFonts.inter(color: AppColors.mediumGray)),
+            child: Text('Annuler',
+                style: GoogleFonts.inter(color: AppColors.mediumGray)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -205,23 +214,24 @@ class _ProfileScreenState extends State<ProfileScreen>
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.crimsonRed,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
             ),
-            child: Text('Déconnecter', style: GoogleFonts.inter(color: AppColors.pureWhite)),
+            child: Text('Déconnecter',
+                style: GoogleFonts.inter(color: AppColors.pureWhite)),
           ),
         ],
       ),
     );
   }
 
-  
-
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const Scaffold(
         backgroundColor: AppColors.deepBlack,
-        body: Center(child: CircularProgressIndicator(color: AppColors.crimsonRed)),
+        body: Center(
+            child: CircularProgressIndicator(color: AppColors.crimsonRed)),
       );
     }
 
@@ -232,14 +242,19 @@ class _ProfileScreenState extends State<ProfileScreen>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.person_off_outlined, color: AppColors.mediumGray, size: 48),
+              const Icon(Icons.person_off_outlined,
+                  color: AppColors.mediumGray, size: 48),
               const SizedBox(height: 16),
               Text('Profil introuvable',
-                style: GoogleFonts.poppins(color: AppColors.pureWhite, fontSize: 20, fontWeight: FontWeight.w600)),
+                  style: GoogleFonts.poppins(
+                      color: AppColors.pureWhite,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
               TextButton(
                 onPressed: _loadData,
-                child: Text('Réessayer', style: GoogleFonts.inter(color: AppColors.crimsonRed)),
+                child: Text('Réessayer',
+                    style: GoogleFonts.inter(color: AppColors.crimsonRed)),
               ),
             ],
           ),
@@ -270,7 +285,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                   indicatorWeight: 3,
                   labelColor: AppColors.crimsonRed,
                   unselectedLabelColor: AppColors.mediumGray,
-                  labelStyle: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13),
+                  labelStyle: GoogleFonts.inter(
+                      fontWeight: FontWeight.w600, fontSize: 13),
                   unselectedLabelStyle: GoogleFonts.inter(fontSize: 13),
                   tabs: const [
                     Tab(text: 'Posts'),
@@ -303,15 +319,15 @@ class _ProfileScreenState extends State<ProfileScreen>
     return SliverAppBar(
       expandedHeight: 200,
       backgroundColor: AppColors.deepBlack,
-      automaticallyImplyLeading: false, // 👈 pas de bouton retour
+      automaticallyImplyLeading: false,
       pinned: true,
       elevation: 0,
       title: Text(
         _profile!.displayNameOrUsername,
-        style: GoogleFonts.poppins(color: AppColors.pureWhite, fontWeight: FontWeight.w600),
+        style: GoogleFonts.poppins(
+            color: AppColors.pureWhite, fontWeight: FontWeight.w600),
       ),
       actions: [
-        // Bouton paramètres — seulement sur son propre profil
         if (_isMe)
           IconButton(
             icon: const Icon(Icons.menu, color: AppColors.pureWhite),
@@ -322,13 +338,22 @@ class _ProfileScreenState extends State<ProfileScreen>
         background: Stack(
           fit: StackFit.expand,
           children: [
-            // Bannière
+            // ✅ BANNIÈRE CORRIGÉE
             _profile!.hasBanner
-                ? Image.network(_profile!.bannerUrl!, fit: BoxFit.cover)
-                : Container(decoration: const BoxDecoration(gradient: AppColors.primaryGradient)),
+                ? SmartImage(
+                    imageUrl: _profile!.bannerUrl,
+                    width: double.infinity,
+                    height: double.infinity,
+                    fit: BoxFit.cover,
+                  )
+                : Container(
+                    decoration: const BoxDecoration(
+                        gradient: AppColors.primaryGradient)),
 
             // Dégradé bas
-            DecoratedBox(decoration: BoxDecoration(gradient: AppColors.overlayGradient)),
+            DecoratedBox(
+                decoration:
+                    BoxDecoration(gradient: AppColors.overlayGradient)),
 
             // Avatar + bouton action superposés
             Positioned(
@@ -338,33 +363,44 @@ class _ProfileScreenState extends State<ProfileScreen>
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  // Avatar
+                  // ✅ AVATAR CORRIGÉ
                   Stack(
                     children: [
                       Container(
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          border: Border.all(color: AppColors.crimsonRed, width: 3),
+                          border: Border.all(
+                              color: AppColors.crimsonRed, width: 3),
                         ),
-                        child: CircleAvatar(
-                          radius: 36,
-                          backgroundColor: AppColors.darkGray,
-                          backgroundImage: _profile!.hasAvatar
-                              ? NetworkImage(_profile!.avatarUrl!)
-                              : null,
-                          child: !_profile!.hasAvatar
-                              ? const Icon(Icons.person, color: AppColors.pureWhite, size: 32)
-                              : null,
+                        child: ClipOval(
+                          child: _profile!.hasAvatar
+                              ? SmartImage(
+                                  imageUrl: _profile!.avatarUrl,
+                                  width: 72,
+                                  height: 72,
+                                  fit: BoxFit.cover,
+                                )
+                              : Container(
+                                  width: 72,
+                                  height: 72,
+                                  color: AppColors.darkGray,
+                                  child: const Icon(Icons.person,
+                                      color: AppColors.pureWhite, size: 32),
+                                ),
                         ),
                       ),
                       // Bouton modifier l'avatar si c'est mon profil
                       if (_isMe)
                         Positioned(
-                          bottom: 0, right: 0,
+                          bottom: 0,
+                          right: 0,
                           child: GestureDetector(
                             onTap: () async {
-                              await Navigator.push(context,
-                                MaterialPageRoute(builder: (_) => EditProfileScreen(profile: _profile!)));
+                              await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) => EditProfileScreen(
+                                          profile: _profile!)));
                               _loadData();
                             },
                             child: Container(
@@ -373,7 +409,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                                 color: AppColors.crimsonRed,
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(Icons.camera_alt, color: AppColors.pureWhite, size: 12),
+                              child: const Icon(Icons.camera_alt,
+                                  color: AppColors.pureWhite, size: 12),
                             ),
                           ),
                         ),
@@ -386,16 +423,21 @@ class _ProfileScreenState extends State<ProfileScreen>
                   if (_isMe)
                     GestureDetector(
                       onTap: () async {
-                        await Navigator.push(context,
-                          MaterialPageRoute(builder: (_) => EditProfileScreen(profile: _profile!)));
+                        await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) =>
+                                    EditProfileScreen(profile: _profile!)));
                         _loadData();
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 10),
                         decoration: BoxDecoration(
                           color: Colors.transparent,
                           borderRadius: BorderRadius.circular(24),
-                          border: Border.all(color: AppColors.pureWhite, width: 2),
+                          border:
+                              Border.all(color: AppColors.pureWhite, width: 2),
                         ),
                         child: Text(
                           'Modifier',
@@ -409,17 +451,27 @@ class _ProfileScreenState extends State<ProfileScreen>
                     )
                   else
                     GestureDetector(
-                      onTap: () => setState(() => _isFollowing = !_isFollowing),
+                      onTap: () =>
+                          setState(() => _isFollowing = !_isFollowing),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 10),
                         decoration: BoxDecoration(
-                          color: _isFollowing ? Colors.transparent : AppColors.crimsonRed,
+                          color: _isFollowing
+                              ? Colors.transparent
+                              : AppColors.crimsonRed,
                           borderRadius: BorderRadius.circular(24),
-                          border: Border.all(color: AppColors.crimsonRed, width: 2),
-                          boxShadow: _isFollowing ? [] : [
-                            BoxShadow(color: AppColors.crimsonShadow, blurRadius: 12, offset: const Offset(0, 4)),
-                          ],
+                          border: Border.all(
+                              color: AppColors.crimsonRed, width: 2),
+                          boxShadow: _isFollowing
+                              ? []
+                              : [
+                                  BoxShadow(
+                                      color: AppColors.crimsonShadow,
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 4)),
+                                ],
                         ),
                         child: Text(
                           _isFollowing ? 'Abonné' : 'Suivre',
@@ -464,11 +516,13 @@ class _ProfileScreenState extends State<ProfileScreen>
                     ),
                     if (_profile!.isVerified) ...[
                       const SizedBox(width: 8),
-                      const Icon(Icons.verified, color: AppColors.crimsonRed, size: 20),
+                      const Icon(Icons.verified,
+                          color: AppColors.crimsonRed, size: 20),
                     ],
                     if (_profile!.isPrivate) ...[
                       const SizedBox(width: 8),
-                      const Icon(Icons.lock_outline, color: AppColors.mediumGray, size: 16),
+                      const Icon(Icons.lock_outline,
+                          color: AppColors.mediumGray, size: 16),
                     ],
                   ],
                 ),
@@ -477,21 +531,25 @@ class _ProfileScreenState extends State<ProfileScreen>
                 Row(
                   children: [
                     if (_profile!.location != null) ...[
-                      const Icon(Icons.location_on_outlined, color: AppColors.mediumGray, size: 14),
+                      const Icon(Icons.location_on_outlined,
+                          color: AppColors.mediumGray, size: 14),
                       const SizedBox(width: 4),
                       Text(_profile!.location!,
-                        style: GoogleFonts.inter(color: AppColors.mediumGray, fontSize: 13)),
+                          style: GoogleFonts.inter(
+                              color: AppColors.mediumGray, fontSize: 13)),
                       const SizedBox(width: 12),
                     ],
                     if (_profile!.website != null) ...[
-                      const Icon(Icons.link, color: AppColors.crimsonRed, size: 14),
+                      const Icon(Icons.link,
+                          color: AppColors.crimsonRed, size: 14),
                       const SizedBox(width: 4),
                       Text(_profile!.website!,
-                        style: GoogleFonts.inter(
-                          color: AppColors.crimsonRed, fontSize: 13,
-                          decoration: TextDecoration.underline,
-                          decorationColor: AppColors.crimsonRed,
-                        )),
+                          style: GoogleFonts.inter(
+                            color: AppColors.crimsonRed,
+                            fontSize: 13,
+                            decoration: TextDecoration.underline,
+                            decorationColor: AppColors.crimsonRed,
+                          )),
                     ],
                   ],
                 ),
@@ -511,32 +569,42 @@ class _ProfileScreenState extends State<ProfileScreen>
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
       child: Row(
         children: [
-          const Icon(Icons.people_outline, color: AppColors.mediumGray, size: 16),
+          const Icon(Icons.people_outline,
+              color: AppColors.mediumGray, size: 16),
           const SizedBox(width: 6),
           RichText(
             text: TextSpan(children: [
               TextSpan(
                 text: '${_profile!.followersCount}',
-                style: GoogleFonts.inter(color: AppColors.pureWhite, fontWeight: FontWeight.w700, fontSize: 14),
+                style: GoogleFonts.inter(
+                    color: AppColors.pureWhite,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14),
               ),
               TextSpan(
                 text: ' Abonnés',
-                style: GoogleFonts.inter(color: AppColors.mediumGray, fontSize: 14),
+                style: GoogleFonts.inter(
+                    color: AppColors.mediumGray, fontSize: 14),
               ),
             ]),
           ),
           const SizedBox(width: 8),
-          const Text('•', style: TextStyle(color: AppColors.successGreen, fontSize: 16)),
+          const Text('•',
+              style: TextStyle(color: AppColors.successGreen, fontSize: 16)),
           const SizedBox(width: 8),
           RichText(
             text: TextSpan(children: [
               TextSpan(
                 text: '${_profile!.postsCount}',
-                style: GoogleFonts.inter(color: AppColors.pureWhite, fontWeight: FontWeight.w700, fontSize: 14),
+                style: GoogleFonts.inter(
+                    color: AppColors.pureWhite,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14),
               ),
               TextSpan(
                 text: ' Posts',
-                style: GoogleFonts.inter(color: AppColors.mediumGray, fontSize: 14),
+                style: GoogleFonts.inter(
+                    color: AppColors.mediumGray, fontSize: 14),
               ),
             ]),
           ),
@@ -554,7 +622,8 @@ class _ProfileScreenState extends State<ProfileScreen>
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
       child: Text(
         _profile!.bio!,
-        style: GoogleFonts.inter(color: AppColors.lightGray, fontSize: 14, height: 1.5),
+        style: GoogleFonts.inter(
+            color: AppColors.lightGray, fontSize: 14, height: 1.5),
       ),
     );
   }
@@ -566,7 +635,8 @@ class _ProfileScreenState extends State<ProfileScreen>
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
       child: Wrap(
-        spacing: 8, runSpacing: 8,
+        spacing: 8,
+        runSpacing: 8,
         children: _profile!.favoriteGenres.map((genre) {
           return Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -576,7 +646,10 @@ class _ProfileScreenState extends State<ProfileScreen>
               border: Border.all(color: AppColors.crimsonWithOpacity(0.4)),
             ),
             child: Text('#$genre',
-              style: GoogleFonts.inter(color: AppColors.lightCrimson, fontSize: 12, fontWeight: FontWeight.w500)),
+                style: GoogleFonts.inter(
+                    color: AppColors.lightCrimson,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500)),
           );
         }).toList(),
       ),
@@ -597,10 +670,11 @@ class _ProfileScreenState extends State<ProfileScreen>
             child: Center(
               child: Column(
                 children: [
-                  const Icon(Icons.post_add, color: AppColors.mediumGray, size: 48),
+                  const Icon(Icons.post_add,
+                      color: AppColors.mediumGray, size: 48),
                   const SizedBox(height: 12),
                   Text('Aucun post pour le moment',
-                    style: GoogleFonts.inter(color: AppColors.mediumGray)),
+                      style: GoogleFonts.inter(color: AppColors.mediumGray)),
                 ],
               ),
             ),
@@ -622,18 +696,28 @@ class _ProfileScreenState extends State<ProfileScreen>
       ),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 18,
-            backgroundColor: AppColors.mediumGray,
-            backgroundImage: _profile!.hasAvatar ? NetworkImage(_profile!.avatarUrl!) : null,
-            child: !_profile!.hasAvatar
-                ? const Icon(Icons.person, color: AppColors.pureWhite, size: 18)
-                : null,
+          // ✅ AVATAR CORRIGÉ
+          ClipOval(
+            child: _profile!.hasAvatar
+                ? SmartImage(
+                    imageUrl: _profile!.avatarUrl,
+                    width: 36,
+                    height: 36,
+                    fit: BoxFit.cover,
+                  )
+                : Container(
+                    width: 36,
+                    height: 36,
+                    color: AppColors.mediumGray,
+                    child: const Icon(Icons.person,
+                        color: AppColors.pureWhite, size: 18),
+                  ),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Text('Commencer une discussion...',
-              style: GoogleFonts.inter(color: AppColors.mediumGray, fontSize: 14)),
+                style: GoogleFonts.inter(
+                    color: AppColors.mediumGray, fontSize: 14)),
           ),
         ],
       ),
@@ -656,22 +740,35 @@ class _ProfileScreenState extends State<ProfileScreen>
             padding: const EdgeInsets.all(12),
             child: Row(
               children: [
-                CircleAvatar(
-                  radius: 18,
-                  backgroundColor: AppColors.mediumGray,
-                  backgroundImage: _profile!.hasAvatar ? NetworkImage(_profile!.avatarUrl!) : null,
-                  child: !_profile!.hasAvatar
-                      ? const Icon(Icons.person, color: AppColors.pureWhite, size: 16)
-                      : null,
+                // ✅ AVATAR CORRIGÉ
+                ClipOval(
+                  child: _profile!.hasAvatar
+                      ? SmartImage(
+                          imageUrl: _profile!.avatarUrl,
+                          width: 36,
+                          height: 36,
+                          fit: BoxFit.cover,
+                        )
+                      : Container(
+                          width: 36,
+                          height: 36,
+                          color: AppColors.mediumGray,
+                          child: const Icon(Icons.person,
+                              color: AppColors.pureWhite, size: 16),
+                        ),
                 ),
                 const SizedBox(width: 10),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(_profile!.displayNameOrUsername,
-                      style: GoogleFonts.inter(color: AppColors.pureWhite, fontWeight: FontWeight.w600, fontSize: 13)),
+                        style: GoogleFonts.inter(
+                            color: AppColors.pureWhite,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13)),
                     Text(_formatDate(post.createdAt),
-                      style: GoogleFonts.inter(color: AppColors.mediumGray, fontSize: 11)),
+                        style: GoogleFonts.inter(
+                            color: AppColors.mediumGray, fontSize: 11)),
                   ],
                 ),
                 const Spacer(),
@@ -685,14 +782,17 @@ class _ProfileScreenState extends State<ProfileScreen>
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
               child: Text(post.caption,
-                style: GoogleFonts.inter(color: AppColors.pureWhite, fontSize: 14, height: 1.5)),
+                  style: GoogleFonts.inter(
+                      color: AppColors.pureWhite, fontSize: 14, height: 1.5)),
             ),
 
-          // Image
+          // ✅ IMAGE CORRIGÉE
           if (post.mediaUrls.isNotEmpty)
-            ClipRRect(
-              child: Image.network(post.mediaUrls.first,
-                width: double.infinity, height: 200, fit: BoxFit.cover),
+            SmartImage(
+              imageUrl: post.mediaUrls.first,
+              width: double.infinity,
+              height: 200,
+              fit: BoxFit.cover,
             ),
 
           // Actions
@@ -700,11 +800,14 @@ class _ProfileScreenState extends State<ProfileScreen>
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: Row(
               children: [
-                _actionButton(Icons.favorite_border, '${post.likesCount}', AppColors.crimsonRed),
+                _actionButton(Icons.favorite_border, '${post.likesCount}',
+                    AppColors.crimsonRed),
                 const SizedBox(width: 16),
-                _actionButton(Icons.chat_bubble_outline, '${post.commentsCount}', AppColors.mediumGray),
+                _actionButton(Icons.chat_bubble_outline,
+                    '${post.commentsCount}', AppColors.mediumGray),
                 const Spacer(),
-                _actionButton(Icons.share_outlined, 'Partager', AppColors.mediumGray),
+                _actionButton(Icons.share_outlined, 'Partager',
+                    AppColors.mediumGray),
               ],
             ),
           ),
@@ -718,7 +821,8 @@ class _ProfileScreenState extends State<ProfileScreen>
       children: [
         Icon(icon, color: color, size: 18),
         const SizedBox(width: 4),
-        Text(label, style: GoogleFonts.inter(color: AppColors.mediumGray, fontSize: 13)),
+        Text(label,
+            style: GoogleFonts.inter(color: AppColors.mediumGray, fontSize: 13)),
       ],
     );
   }
@@ -732,19 +836,24 @@ class _ProfileScreenState extends State<ProfileScreen>
       children: [
         _aboutSection('Informations', [
           if (_profile!.location != null)
-            _aboutItem(Icons.location_on_outlined, 'Localisation', _profile!.location!),
+            _aboutItem(
+                Icons.location_on_outlined, 'Localisation', _profile!.location!),
           if (_profile!.website != null)
             _aboutItem(Icons.link, 'Site web', _profile!.website!, isLink: true),
           if (_profile!.birthDate != null)
-            _aboutItem(Icons.cake_outlined, 'Date de naissance', _profile!.birthDate!),
+            _aboutItem(Icons.cake_outlined, 'Date de naissance',
+                _profile!.birthDate!),
           if (_profile!.gender != null)
-            _aboutItem(Icons.person_outline, 'Genre', _genderLabel(_profile!.gender!)),
+            _aboutItem(Icons.person_outline, 'Genre',
+                _genderLabel(_profile!.gender!)),
         ]),
         const SizedBox(height: 16),
         _aboutSection('Statistiques', [
           _aboutItem(Icons.article_outlined, 'Posts', '${_profile!.postsCount}'),
-          _aboutItem(Icons.people_outline, 'Abonnés', '${_profile!.followersCount}'),
-          _aboutItem(Icons.person_add_outlined, 'Abonnements', '${_profile!.followingCount}'),
+          _aboutItem(Icons.people_outline, 'Abonnés',
+              '${_profile!.followersCount}'),
+          _aboutItem(Icons.person_add_outlined, 'Abonnements',
+              '${_profile!.followingCount}'),
         ]),
       ],
     );
@@ -756,7 +865,10 @@ class _ProfileScreenState extends State<ProfileScreen>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(title,
-          style: GoogleFonts.poppins(color: AppColors.pureWhite, fontWeight: FontWeight.w600, fontSize: 16)),
+            style: GoogleFonts.poppins(
+                color: AppColors.pureWhite,
+                fontWeight: FontWeight.w600,
+                fontSize: 16)),
         const SizedBox(height: 12),
         Container(
           decoration: BoxDecoration(
@@ -770,22 +882,26 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  Widget _aboutItem(IconData icon, String label, String value, {bool isLink = false}) {
+  Widget _aboutItem(IconData icon, String label, String value,
+      {bool isLink = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
           Icon(icon, color: AppColors.crimsonRed, size: 20),
           const SizedBox(width: 12),
-          Text(label, style: GoogleFonts.inter(color: AppColors.mediumGray, fontSize: 14)),
+          Text(label,
+              style: GoogleFonts.inter(
+                  color: AppColors.mediumGray, fontSize: 14)),
           const Spacer(),
           Text(value,
-            style: GoogleFonts.inter(
-              color: isLink ? AppColors.crimsonRed : AppColors.pureWhite,
-              fontSize: 14, fontWeight: FontWeight.w500,
-              decoration: isLink ? TextDecoration.underline : null,
-              decorationColor: AppColors.crimsonRed,
-            )),
+              style: GoogleFonts.inter(
+                color: isLink ? AppColors.crimsonRed : AppColors.pureWhite,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                decoration: isLink ? TextDecoration.underline : null,
+                decorationColor: AppColors.crimsonRed,
+              )),
         ],
       ),
     );
@@ -795,27 +911,34 @@ class _ProfileScreenState extends State<ProfileScreen>
   // TAB : ANIMÉS
   // ============================================
   Widget _buildAnimesTab() {
-    final hasContent = _profile!.favoriteAnime.isNotEmpty || _profile!.favoriteManga.isNotEmpty;
+    final hasContent =
+        _profile!.favoriteAnime.isNotEmpty || _profile!.favoriteManga.isNotEmpty;
 
     if (!hasContent) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.favorite_border, color: AppColors.mediumGray, size: 48),
+            const Icon(Icons.favorite_border,
+                color: AppColors.mediumGray, size: 48),
             const SizedBox(height: 12),
             Text('Aucun animé/manga favori',
-              style: GoogleFonts.inter(color: AppColors.mediumGray)),
+                style: GoogleFonts.inter(color: AppColors.mediumGray)),
             if (_isMe) ...[
               const SizedBox(height: 16),
               TextButton(
                 onPressed: () async {
-                  await Navigator.push(context,
-                    MaterialPageRoute(builder: (_) => EditProfileScreen(profile: _profile!)));
+                  await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) =>
+                              EditProfileScreen(profile: _profile!)));
                   _loadData();
                 },
                 child: Text('Ajouter des favoris',
-                  style: GoogleFonts.inter(color: AppColors.crimsonRed, fontWeight: FontWeight.w600)),
+                    style: GoogleFonts.inter(
+                        color: AppColors.crimsonRed,
+                        fontWeight: FontWeight.w600)),
               ),
             ],
           ],
@@ -828,18 +951,30 @@ class _ProfileScreenState extends State<ProfileScreen>
       children: [
         if (_profile!.favoriteAnime.isNotEmpty) ...[
           Text('Animés favoris',
-            style: GoogleFonts.poppins(color: AppColors.pureWhite, fontWeight: FontWeight.w600, fontSize: 16)),
+              style: GoogleFonts.poppins(
+                  color: AppColors.pureWhite,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16)),
           const SizedBox(height: 12),
-          Wrap(spacing: 8, runSpacing: 8,
-            children: _profile!.favoriteAnime.map((a) => _favoriteChip(a)).toList()),
+          Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children:
+                  _profile!.favoriteAnime.map((a) => _favoriteChip(a)).toList()),
           const SizedBox(height: 20),
         ],
         if (_profile!.favoriteManga.isNotEmpty) ...[
           Text('Mangas favoris',
-            style: GoogleFonts.poppins(color: AppColors.pureWhite, fontWeight: FontWeight.w600, fontSize: 16)),
+              style: GoogleFonts.poppins(
+                  color: AppColors.pureWhite,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16)),
           const SizedBox(height: 12),
-          Wrap(spacing: 8, runSpacing: 8,
-            children: _profile!.favoriteManga.map((m) => _favoriteChip(m)).toList()),
+          Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children:
+                  _profile!.favoriteManga.map((m) => _favoriteChip(m)).toList()),
         ],
       ],
     );
@@ -854,7 +989,10 @@ class _ProfileScreenState extends State<ProfileScreen>
         border: Border.all(color: AppColors.crimsonWithOpacity(0.4)),
       ),
       child: Text(label,
-        style: GoogleFonts.inter(color: AppColors.lightCrimson, fontSize: 13, fontWeight: FontWeight.w500)),
+          style: GoogleFonts.inter(
+              color: AppColors.lightCrimson,
+              fontSize: 13,
+              fontWeight: FontWeight.w500)),
     );
   }
 
@@ -867,10 +1005,11 @@ class _ProfileScreenState extends State<ProfileScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.favorite_border, color: AppColors.mediumGray, size: 48),
+            const Icon(Icons.favorite_border,
+                color: AppColors.mediumGray, size: 48),
             const SizedBox(height: 12),
             Text('Aucun post liké',
-              style: GoogleFonts.inter(color: AppColors.mediumGray)),
+                style: GoogleFonts.inter(color: AppColors.mediumGray)),
           ],
         ),
       );
@@ -889,18 +1028,27 @@ class _ProfileScreenState extends State<ProfileScreen>
         return Stack(
           fit: StackFit.expand,
           children: [
+            // ✅ IMAGE CORRIGÉE
             post.mediaUrls.isNotEmpty
-                ? Image.network(post.mediaUrls.first, fit: BoxFit.cover)
+                ? SmartImage(
+                    imageUrl: post.mediaUrls.first,
+                    fit: BoxFit.cover,
+                  )
                 : Container(
                     color: AppColors.darkGray,
                     padding: const EdgeInsets.all(8),
                     child: Text(post.caption,
-                      style: GoogleFonts.inter(color: AppColors.pureWhite, fontSize: 11),
-                      maxLines: 4, overflow: TextOverflow.ellipsis),
+                        style: GoogleFonts.inter(
+                            color: AppColors.pureWhite, fontSize: 11),
+                        maxLines: 4,
+                        overflow: TextOverflow.ellipsis),
                   ),
-            DecoratedBox(decoration: BoxDecoration(gradient: AppColors.overlayGradient)),
+            DecoratedBox(
+                decoration:
+                    BoxDecoration(gradient: AppColors.overlayGradient)),
             const Positioned(
-              bottom: 6, left: 6,
+              bottom: 6,
+              left: 6,
               child: Icon(Icons.favorite, color: AppColors.crimsonRed, size: 14),
             ),
           ],
@@ -922,8 +1070,10 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   String _genderLabel(String gender) {
     const labels = {
-      'male': 'Homme', 'female': 'Femme',
-      'other': 'Autre', 'prefer_not_to_say': 'Préfère ne pas dire',
+      'male': 'Homme',
+      'female': 'Femme',
+      'other': 'Autre',
+      'prefer_not_to_say': 'Préfère ne pas dire',
     };
     return labels[gender] ?? gender;
   }
@@ -937,9 +1087,13 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
   const _TabBarDelegate(this.tabBar);
 
   @override
-  Widget build(_, __, ___) => Container(color: AppColors.deepBlack, child: tabBar);
+  Widget build(_, __, ___) =>
+      Container(color: AppColors.deepBlack, child: tabBar);
 
-  @override double get maxExtent => tabBar.preferredSize.height;
-  @override double get minExtent => tabBar.preferredSize.height;
-  @override bool shouldRebuild(_) => false;
+  @override
+  double get maxExtent => tabBar.preferredSize.height;
+  @override
+  double get minExtent => tabBar.preferredSize.height;
+  @override
+  bool shouldRebuild(_) => false;
 }

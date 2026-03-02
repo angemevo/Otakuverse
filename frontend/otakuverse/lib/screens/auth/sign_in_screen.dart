@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:otakuverse/core/constants/colors.dart';
-import 'package:otakuverse/core/utils/helpers.dart';
 import 'package:otakuverse/core/widgets/button/google_sign_in_button.dart';
+import 'package:otakuverse/models/sign_up_data.dart';
+import 'package:otakuverse/screens/auth/signup/signup_step2_screen.dart';
 import 'package:otakuverse/screens/navigation_page.dart';
-import '../../../core/constants/app_constants.dart';
 import '../../../core/utils/validators.dart';
 import '../../../core/widgets/custom_text_field.dart';
 import '../../../core/widgets/button/app_button.dart';
@@ -35,6 +35,7 @@ class _SignInScreenState extends State<SignInScreen> {
   @override
   void initState() {
     super.initState();
+    print('🔵🔵🔵 SIGNIN SCREEN INITIALISÉ 🔵🔵🔵');
     _requestLocationPermission();
   }
 
@@ -49,35 +50,75 @@ class _SignInScreenState extends State<SignInScreen> {
     await _locationService.requestPermission();
   }
 
+  // ✅ MÉTHODE 1 : Connexion Email/Password
   Future<void> _handleSignIn() async {
-    setState(() => _errorMessage = null);
-    if (!_formKey.currentState!.validate()) return;
-    setState(() => _isLoading = true);
+    print('🔵 === DÉBUT SIGNIN ===');
+    
+    if (!_formKey.currentState!.validate()) {
+      print('⚠️ Formulaire invalide');
+      return;
+    }
+
+    setState(() {
+      _errorMessage = null;
+      _isLoading = true;
+    });
 
     try {
+      print('📤 Envoi requête signin...');
+      print('Email: ${_emailController.text}');
+
       final result = await _authService.signin(
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
 
-      if (!mounted) return;
+      print('📥 Réponse signin: $result');
+
+      if (!mounted) {
+        print('⚠️ Widget démonté');
+        return;
+      }
 
       if (result['success'] == true) {
-        Helpers.navigateReplace(NavigationPage());
+        print('✅ Signin réussi !');
+        print('Token: ${result['token']}');
+        print('User: ${result['user']}');
+
+        // Navigation vers la page d'accueil
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const NavigationPage()),
+          (route) => false,
+        );
+
+        print('✅ Navigation effectuée');
       } else {
+        print('❌ Signin échoué: ${result['error']}');
         setState(() {
-          _errorMessage = result['error'] ?? AppConstants.genericErrorMessage;
+          _errorMessage = result['error'] ?? 'Erreur de connexion';
         });
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('❌ Exception signin: $e');
+      print('Stack trace: $stackTrace');
       if (!mounted) return;
-      setState(() => _errorMessage = 'Erreur de connexion');
+      setState(() {
+        _errorMessage = 'Erreur de connexion: ${e.toString()}';
+      });
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      print('🔵 === FIN SIGNIN ===');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
+  // ✅ MÉTHODE 2 : Connexion Google
   Future<void> _handleGoogleSignIn() async {
+    print('🔵 === DÉBUT GOOGLE SIGNIN ===');
+    
     setState(() {
       _errorMessage = null;
       _isGoogleLoading = true;
@@ -85,38 +126,75 @@ class _SignInScreenState extends State<SignInScreen> {
 
     try {
       final googleData = await _googleAuthService.signInWithGoogle();
-      print("GOOGLE DATA => $googleData");
+      print('📥 Google Data reçu: $googleData');
 
       if (googleData == null) {
+        print('⚠️ Google Sign-In annulé');
         if (mounted) setState(() => _isGoogleLoading = false);
         return;
       }
 
       final location = await _locationService.getLocation();
+      print('📍 Localisation: $location');
 
       final result = await _authService.signinWithGoogle(
-        sub: googleData['sub'],               // ✅ CORRIGÉ
+        sub: googleData['sub'],
         email: googleData['email'],
         displayName: googleData['displayName'],
         photoUrl: googleData['photoUrl'],
         location: location,
       );
 
+      print('📥 Réponse backend: $result');
+
       if (!mounted) return;
 
       if (result['success'] == true) {
-        Helpers.navigateReplace(NavigationPage());
+        print('✅ Google Sign-In réussi !');
+        
+        final isNewUser = result['is_new_user'] ?? false;
+        final user = result['user'];
+        
+        print('Is New User: $isNewUser');
+
+        if (isNewUser) {
+          print('➡️ Nouveau user → Redirection vers Step 2');
+          
+          final signupData = SignupData(
+            email: user['email'],
+            username: user['username'],
+            password: null,
+          );
+          
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) => SignUpStep2Screen(signupData: signupData),
+            ),
+            (route) => false,
+          );
+        } else {
+          print('➡️ User existant → Redirection vers Home');
+          
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const NavigationPage()),
+            (route) => false,
+          );
+        }
+        
+        print('✅ Navigation effectuée');
       } else {
+        print('❌ Google Sign-In échoué: ${result['error']}');
         setState(() {
           _errorMessage = result['error'] ?? 'Erreur Google Sign-In';
-          print('Erreur : ${_errorMessage}');
         });
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('❌ Exception Google Sign-In: $e');
+      print('Stack trace: $stackTrace');
       if (!mounted) return;
-      setState(() => _errorMessage = 'Erreur Google Sign-In');
-      print('Erreur : ${_errorMessage}');
+      setState(() => _errorMessage = 'Erreur Google Sign-In: ${e.toString()}');
     } finally {
+      print('🔵 === FIN GOOGLE SIGNIN ===');
       if (mounted) setState(() => _isGoogleLoading = false);
     }
   }
@@ -185,7 +263,7 @@ class _SignInScreenState extends State<SignInScreen> {
             gradient: AppColors.primaryGradient,
             borderRadius: BorderRadius.circular(20),
           ),
-          child: const Icon(Icons.public, size: 40, color: Colors.white),
+          child: Image.asset("assets/logo/otakuverse_logo.png"),
         ),
         const SizedBox(height: 24),
         const Text(
@@ -216,12 +294,12 @@ class _SignInScreenState extends State<SignInScreen> {
       ),
       child: Row(
         children: [
-          Icon(Icons.error_outline, color: AppColors.errorRed),
+          const Icon(Icons.error_outline, color: AppColors.errorRed),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               _errorMessage!,
-              style: TextStyle(color: AppColors.errorRed, fontSize: 14),
+              style: const TextStyle(color: AppColors.errorRed, fontSize: 14),
             ),
           ),
         ],
@@ -254,7 +332,11 @@ class _SignInScreenState extends State<SignInScreen> {
           style: TextStyle(color: AppColors.lightGray, fontSize: 14),
         ),
         TextButton(
-          onPressed: () => Helpers.navigateTo(SignUpStep1Screen()),
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => const SignUpStep1Screen()),
+            );
+          },
           child: const Text(
             'S\'inscrire',
             style: TextStyle(

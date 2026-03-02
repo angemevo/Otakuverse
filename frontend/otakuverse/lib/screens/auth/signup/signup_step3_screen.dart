@@ -4,7 +4,6 @@ import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/src/extension_navigation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:otakuverse/core/constants/colors.dart';
-import 'package:otakuverse/core/utils/helpers.dart';
 import 'package:otakuverse/core/widgets/step_indicator.dart'; // ✅ AJOUTÉ
 import 'package:otakuverse/models/sign_up_data.dart';
 import 'package:otakuverse/screens/auth/signup_succes_screen.dart';
@@ -92,6 +91,7 @@ class _SignUpStep3ScreenState extends State<SignUpStep3Screen> {
     );
   }
 
+
   Future<void> _handleSignUp() async {
     setState(() {
       _isLoading = true;
@@ -101,40 +101,72 @@ class _SignUpStep3ScreenState extends State<SignUpStep3Screen> {
     try {
       widget.signupData.avatarPath = _avatarPath;
 
-      final location = await _locationService.getLocation();
-      widget.signupData.location = location;
+      final isGoogleSignIn = widget.signupData.password == null;
 
-      // ✅ CORRIGÉ — dateOfBirthString convertit DateTime en String pour l'API
-      final result = await _authService.signup(
-        email: widget.signupData.email!,
-        password: widget.signupData.password!,
-        username: widget.signupData.username!,
-        dateOfBirth: widget.signupData.dateOfBirthString!,
-        gender: widget.signupData.gender!,
-        phone: widget.signupData.phone,
-        location: widget.signupData.location,
-        avatarUrl: _avatarPath
-      );
-
-      if (!mounted) return;
-
-      if (result['success'] == true) {
-        Helpers.navigateOffAll(
-          SignupSuccessScreen(
-            username: widget.signupData.username!,
-            signupData: widget.signupData,
-          ),
+      if (isGoogleSignIn) {
+        print('🔵 Google Sign-In : Complétion du profil');
+        
+        final result = await _authService.completeGoogleProfile(
+          birthDate: widget.signupData.dateOfBirthString!,
+          gender: widget.signupData.gender!,
+          avatarUrl: _avatarPath,
         );
+
+        if (!mounted) return;
+
+        if (result['success'] == true) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) => SignupSuccessScreen(
+                username: widget.signupData.username!,
+                signupData: widget.signupData,
+              ),
+            ),
+            (route) => false,
+          );
+        } else {
+          setState(() {
+            _errorMessage = result['error'] ?? 'Erreur lors de la mise à jour';
+          });
+        }
       } else {
-        setState(() {
-          _errorMessage = result['error'] ?? 'Erreur lors de l\'inscription';
-          print('Date: $_errorMessage');
-        });
+        print('🔵 Signup classique');
+        
+        final location = await _locationService.getLocation();
+        widget.signupData.location = location;
+
+        final result = await _authService.signup(
+          email: widget.signupData.email!,
+          password: widget.signupData.password!,
+          username: widget.signupData.username!,
+          dateOfBirth: widget.signupData.dateOfBirthString!,
+          gender: widget.signupData.gender!,
+          phone: widget.signupData.phone,
+          location: widget.signupData.location,
+          avatarUrl: _avatarPath,
+        );
+
+        if (!mounted) return;
+
+        if (result['success'] == true) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) => SignupSuccessScreen(
+                username: widget.signupData.username!,
+                signupData: widget.signupData,
+              ),
+            ),
+            (route) => false,
+          );
+        } else {
+          setState(() {
+            _errorMessage = result['error'] ?? 'Erreur lors de l\'inscription';
+          });
+        }
       }
     } catch (e) {
       if (!mounted) return;
       setState(() => _errorMessage = 'Erreur: $e');
-      print('Date: $_errorMessage');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -194,17 +226,26 @@ class _SignUpStep3ScreenState extends State<SignUpStep3Screen> {
                                 color: AppColors.crimsonRed,
                                 width: 3,
                               ),
-                              image: _avatarPath != null
-                                  ? DecorationImage(
-                                      image: FileImage(File(_avatarPath!)),
-                                      fit: BoxFit.cover,
-                                    )
-                                  : null,
                             ),
-                            child: _avatarPath == null
-                                ? Icon(Icons.person,
-                                    size: 80, color: AppColors.mediumGray)
-                                : null,
+                            child: ClipOval(
+                              child: _avatarPath != null
+                                  ? Image.file(  // ✅ FileImage via Image.file
+                                      File(_avatarPath!),
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return Icon(
+                                          Icons.person,
+                                          size: 80,
+                                          color: AppColors.mediumGray,
+                                        );
+                                      },
+                                    )
+                                  : Icon(
+                                      Icons.person,
+                                      size: 80,
+                                      color: AppColors.mediumGray,
+                                    ),
+                            ),
                           ),
                           Positioned(
                             bottom: 0,

@@ -2,8 +2,9 @@ import {
   Controller,
   Get,
   Patch,
-  Param,
+  Post,
   Body,
+  Param,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -16,27 +17,90 @@ import { ProfilesService } from './profile.service';
 export class ProfilesController {
   constructor(private readonly profilesService: ProfilesService) {}
 
-  // Mon profil
+  // ============================================
+  // MON PROFIL
+  // ============================================
   @Get('me')
   getMyProfile(@Request() req) {
-    return this.profilesService.getProfile(req.user.userId); // ✅ corrigé
+    return this.profilesService.getMyProfile(req.user.userId);
   }
 
-  // Profil d'un autre user
+  // ============================================
+  // METTRE À JOUR MON PROFIL
+  // ============================================
+  @Patch('me')
+  updateMyProfile(@Request() req, @Body() dto: UpdateProfileDto) {
+    return this.profilesService.updateProfile(req.user.userId, dto);
+  }
+
+  // ============================================
+  // COMPLÉTER LE PROFIL GOOGLE
+  // ============================================
+  @Patch('me/complete')
+  completeGoogleProfile(
+    @Request() req,
+    @Body() body: {
+      birthDate: string;
+      gender: string;
+      favoriteAnime: string[];
+      favoriteManga: string[];
+      favoriteGenres: string[];
+    },
+  ) {
+    return this.profilesService.completeGoogleProfile(
+      req.user.userId,
+      body.birthDate,
+      body.gender,
+      body.favoriteAnime,
+      body.favoriteManga,
+      body.favoriteGenres,
+    );
+  }
+
+  // ============================================
+  // METTRE À JOUR LES PRÉFÉRENCES D'ONBOARDING
+  // ============================================
+  @Patch('me/onboarding')
+  updateOnboardingPreferences(
+    @Request() req,
+    @Body() body: {
+      favoriteAnime: string[];
+      favoriteGames: string[];
+    },
+  ) {
+    return this.profilesService.updateOnboardingPreferences(
+      req.user.userId,
+      body.favoriteAnime,
+      body.favoriteGames,
+    );
+  }
+
+  // ============================================
+  // ✅ TOGGLE PRIVACY
+  // ============================================
+  @Post('me/toggle-privacy')
+  togglePrivacy(@Request() req) {
+    return this.profilesService.togglePrivacy(req.user.userId);
+  }
+
+  // ============================================
+  // PROFIL D'UN AUTRE USER
+  // ============================================
   @Get(':userId')
   getProfile(@Param('userId') userId: string) {
     return this.profilesService.getProfile(userId);
   }
 
-  // Modifier mon profil
-  @Patch('me')
-  updateProfile(@Request() req, @Body() dto: UpdateProfileDto) {
-    return this.profilesService.updateProfile(req.user.userId, dto); // ✅ corrigé
+  // ============================================
+  // FOLLOW / UNFOLLOW
+  // ============================================
+  @Post(':userId/follow')
+  follow(@Request() req, @Param('userId') userId: string) {
+    return this.profilesService.follow(req.user.userId, userId);
   }
 
-  // Toggle privé/public
-  @Patch('me/privacy')
-  togglePrivacy(@Request() req) {
-    return this.profilesService.togglePrivacy(req.user.userId); // ✅ corrigé
+  @Post(':userId/unfollow')
+  unfollow(@Request() req, @Param('userId') userId: string) {
+    return this.profilesService.unfollow(req.user.userId, userId);
   }
 }

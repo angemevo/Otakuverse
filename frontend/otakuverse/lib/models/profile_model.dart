@@ -1,3 +1,5 @@
+// models/profile_model.dart
+
 class ProfileModel {
   final String id;
   final String userId;
@@ -11,6 +13,7 @@ class ProfileModel {
   final String? website;
   final List<String> favoriteAnime;
   final List<String> favoriteManga;
+  final List<String> favoriteGames;  // ✅ AJOUTÉ
   final List<String> favoriteGenres;
   final int followersCount;
   final int followingCount;
@@ -33,6 +36,7 @@ class ProfileModel {
     this.website,
     required this.favoriteAnime,
     required this.favoriteManga,
+    required this.favoriteGames,  // ✅ AJOUTÉ
     required this.favoriteGenres,
     required this.followersCount,
     required this.followingCount,
@@ -43,6 +47,18 @@ class ProfileModel {
     required this.updatedAt,
   });
 
+  // ============================================
+  // GETTERS
+  // ============================================
+  bool get hasAvatar => avatarUrl != null && avatarUrl!.isNotEmpty;
+  bool get hasBanner => bannerUrl != null && bannerUrl!.isNotEmpty;
+  bool get hasBio => bio != null && bio!.isNotEmpty;
+  
+  String get displayNameOrUsername => displayName ?? 'Utilisateur';
+
+  // ============================================
+  // FROM JSON
+  // ============================================
   factory ProfileModel.fromJson(Map<String, dynamic> json) {
     return ProfileModel(
       id: json['id'] as String,
@@ -55,16 +71,13 @@ class ProfileModel {
       gender: json['gender'] as String?,
       location: json['location'] as String?,
       website: json['website'] as String?,
-      // ✅ Fix : cast explicite pour les listes JSON
-      favoriteAnime: (json['favorite_anime'] as List<dynamic>?)
-          ?.map((e) => e.toString())
-          .toList() ?? [],
-      favoriteManga: (json['favorite_manga'] as List<dynamic>?)
-          ?.map((e) => e.toString())
-          .toList() ?? [],
-      favoriteGenres: (json['favorite_genres'] as List<dynamic>?)
-          ?.map((e) => e.toString())
-          .toList() ?? [],
+      
+      // ✅ PARSING des tableaux JSONB
+      favoriteAnime: _parseStringList(json['favorite_anime']),
+      favoriteManga: _parseStringList(json['favorite_manga']),
+      favoriteGames: _parseStringList(json['favorite_games']),  // ✅ AJOUTÉ
+      favoriteGenres: _parseStringList(json['favorite_genres']),
+      
       followersCount: json['followers_count'] as int? ?? 0,
       followingCount: json['following_count'] as int? ?? 0,
       postsCount: json['posts_count'] as int? ?? 0,
@@ -75,28 +88,50 @@ class ProfileModel {
     );
   }
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'user_id': userId,
-    'display_name': displayName,
-    'bio': bio,
-    'avatar_url': avatarUrl,
-    'banner_url': bannerUrl,
-    'birth_date': birthDate,
-    'gender': gender,
-    'location': location,
-    'website': website,
-    'favorite_anime': favoriteAnime,
-    'favorite_manga': favoriteManga,
-    'favorite_genres': favoriteGenres,
-    'followers_count': followersCount,
-    'following_count': followingCount,
-    'posts_count': postsCount,
-    'is_private': isPrivate,
-    'is_verified': isVerified,
-  };
+  // ✅ Helper pour parser les listes depuis JSONB
+  static List<String> _parseStringList(dynamic value) {
+    if (value == null) return [];
+    if (value is List) {
+      return value.map((e) => e.toString()).toList();
+    }
+    return [];
+  }
 
+  // ============================================
+  // TO JSON
+  // ============================================
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'user_id': userId,
+      'display_name': displayName,
+      'bio': bio,
+      'avatar_url': avatarUrl,
+      'banner_url': bannerUrl,
+      'birth_date': birthDate,
+      'gender': gender,
+      'location': location,
+      'website': website,
+      'favorite_anime': favoriteAnime,
+      'favorite_manga': favoriteManga,
+      'favorite_games': favoriteGames,  // ✅ AJOUTÉ
+      'favorite_genres': favoriteGenres,
+      'followers_count': followersCount,
+      'following_count': followingCount,
+      'posts_count': postsCount,
+      'is_private': isPrivate,
+      'is_verified': isVerified,
+      'created_at': createdAt.toIso8601String(),
+      'updated_at': updatedAt.toIso8601String(),
+    };
+  }
+
+  // ============================================
+  // COPY WITH
+  // ============================================
   ProfileModel copyWith({
+    String? id,
+    String? userId,
     String? displayName,
     String? bio,
     String? avatarUrl,
@@ -107,15 +142,19 @@ class ProfileModel {
     String? website,
     List<String>? favoriteAnime,
     List<String>? favoriteManga,
+    List<String>? favoriteGames,  // ✅ AJOUTÉ
     List<String>? favoriteGenres,
-    bool? isPrivate,
     int? followersCount,
     int? followingCount,
     int? postsCount,
+    bool? isPrivate,
+    bool? isVerified,
+    DateTime? createdAt,
+    DateTime? updatedAt,
   }) {
     return ProfileModel(
-      id: id,
-      userId: userId,
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
       displayName: displayName ?? this.displayName,
       bio: bio ?? this.bio,
       avatarUrl: avatarUrl ?? this.avatarUrl,
@@ -126,19 +165,15 @@ class ProfileModel {
       website: website ?? this.website,
       favoriteAnime: favoriteAnime ?? this.favoriteAnime,
       favoriteManga: favoriteManga ?? this.favoriteManga,
+      favoriteGames: favoriteGames ?? this.favoriteGames,  // ✅ AJOUTÉ
       favoriteGenres: favoriteGenres ?? this.favoriteGenres,
       followersCount: followersCount ?? this.followersCount,
       followingCount: followingCount ?? this.followingCount,
       postsCount: postsCount ?? this.postsCount,
       isPrivate: isPrivate ?? this.isPrivate,
-      isVerified: isVerified,
-      createdAt: createdAt,
-      updatedAt: DateTime.now(),
+      isVerified: isVerified ?? this.isVerified,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
-
-  String get displayNameOrUsername => displayName ?? 'Utilisateur';
-  bool get hasAvatar => avatarUrl != null && avatarUrl!.isNotEmpty;
-  bool get hasBanner => bannerUrl != null && bannerUrl!.isNotEmpty;
-  bool get hasBio => bio != null && bio!.isNotEmpty;
 }

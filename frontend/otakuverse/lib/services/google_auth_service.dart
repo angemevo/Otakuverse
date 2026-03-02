@@ -12,38 +12,44 @@ class GoogleAuthService {
   /// Se connecter avec Google
   Future<Map<String, dynamic>?> signInWithGoogle() async {
     try {
-      print('🔵 Début Google Sign-In...');
-
-      // Déclencher le flow de connexion Google
+      print('🔵 GoogleAuthService: Début sign in...');
+      
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
       if (googleUser == null) {
-        print('⚠️  Connexion Google annulée');
+        print('⚠️ GoogleAuthService: Sign in annulé');
         return null;
       }
 
-      print('✅ Utilisateur Google: ${googleUser.email}');
+      print('✅ GoogleAuthService: User obtenu');
+      print('Email: ${googleUser.email}');
+      print('DisplayName: ${googleUser.displayName}');
+      print('ID: ${googleUser.id}');
 
-      // Obtenir les détails d'authentification
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
 
-      print('✅ Token Google obtenu');
+      print('✅ GoogleAuthService: Auth obtenue');
+      print('ID Token présent: ${googleAuth.idToken != null}');
+      print('Access Token présent: ${googleAuth.accessToken != null}');
 
-      // Retourner les infos utilisateur
-      return {
+      final result = {
+        'sub': googleUser.id,  // ✅ ID Google
         'email': googleUser.email,
         'displayName': googleUser.displayName,
         'photoUrl': googleUser.photoUrl,
         'idToken': googleAuth.idToken,
         'accessToken': googleAuth.accessToken,
       };
+
+      print('✅ GoogleAuthService: Retour data: $result');
+      
+      return result;
     } catch (e) {
-      print('❌ Erreur Google Sign-In: $e');
+      print('❌ GoogleAuthService erreur: $e');
       return null;
     }
   }
-
+  
   /// Se déconnecter de Google
   Future<void> signOut() async {
     try {

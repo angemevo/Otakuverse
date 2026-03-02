@@ -1,122 +1,167 @@
+// models/post_model.dart
+
 class PostModel {
   final String id;
   final String userId;
+  final String? username;
+  final String? displayName;
+  final String? avatarUrl;
   final String caption;
   final List<String> mediaUrls;
-  final int mediaCount;
   final String? location;
-  final bool isPinned;
-  final bool allowComments;
   final int likesCount;
   final int commentsCount;
-  final int sharesCount;
-  final int viewsCount;
+  final int? sharesCount;
+  final int? viewsCount;
+  final int? savesCount;
+  final List<String>? hashtags;
+  final List<dynamic>? likedByUsers;
+  final bool isPinned;
+  final bool isEdited;
   final DateTime createdAt;
-  final DateTime updatedAt;
+  final DateTime? editedAt;
 
-  // Relations optionnelles (jointures)
-  final Map<String, dynamic>? user;
+  // Getters
+  String get displayNameOrUsername => displayName ?? username ?? 'Utilisateur';
+  bool get hasLocation => location != null && location!.isNotEmpty;
+  bool get isCarousel => mediaUrls.length > 1;
+  int get mediaCount => mediaUrls.length;
 
-  const PostModel({
+  PostModel({
     required this.id,
     required this.userId,
+    this.username,
+    this.displayName,
+    this.avatarUrl,
     required this.caption,
     required this.mediaUrls,
-    required this.mediaCount,
     this.location,
-    required this.isPinned,
-    required this.allowComments,
     required this.likesCount,
     required this.commentsCount,
-    required this.sharesCount,
-    required this.viewsCount,
+    this.sharesCount,
+    this.viewsCount,
+    this.savesCount,
+    this.hashtags,
+    this.likedByUsers,
+    this.isPinned = false,
+    this.isEdited = false,
     required this.createdAt,
-    required this.updatedAt,
-    this.user,
+    this.editedAt,
   });
 
-  // ============================================
-  // FROM JSON
-  // ============================================
-  factory PostModel.fromJson(Map<String, dynamic> json) {
+  // ✅ MÉTHODE copyWith
+  PostModel copyWith({
+    String? id,
+    String? userId,
+    String? username,
+    String? displayName,
+    String? avatarUrl,
+    String? caption,
+    List<String>? mediaUrls,
+    String? location,
+    int? likesCount,
+    int? commentsCount,
+    int? sharesCount,
+    int? viewsCount,
+    int? savesCount,
+    List<String>? hashtags,
+    List<dynamic>? likedByUsers,
+    bool? isPinned,
+    bool? isEdited,
+    DateTime? createdAt,
+    DateTime? editedAt,
+  }) {
     return PostModel(
-      id: json['id'] as String,
-      userId: json['user_id'] as String,
-      caption: json['caption'] as String,
-      mediaUrls: List<String>.from(json['media_urls'] ?? []),
-      mediaCount: json['media_count'] as int,
-      location: json['location'] as String?,
-      isPinned: json['is_pinned'] ?? false,
-      allowComments: json['allow_comments'] ?? true,
-      likesCount: json['likes_count'] ?? 0,
-      commentsCount: json['comments_count'] ?? 0,
-      sharesCount: json['shares_count'] ?? 0,
-      viewsCount: json['views_count'] ?? 0,
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
-      user: json['user'] as Map<String, dynamic>?,
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      username: username ?? this.username,
+      displayName: displayName ?? this.displayName,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
+      caption: caption ?? this.caption,
+      mediaUrls: mediaUrls ?? this.mediaUrls,
+      location: location ?? this.location,
+      likesCount: likesCount ?? this.likesCount,
+      commentsCount: commentsCount ?? this.commentsCount,
+      sharesCount: sharesCount ?? this.sharesCount,
+      viewsCount: viewsCount ?? this.viewsCount,
+      savesCount: savesCount ?? this.savesCount,
+      hashtags: hashtags ?? this.hashtags,
+      likedByUsers: likedByUsers ?? this.likedByUsers,
+      isPinned: isPinned ?? this.isPinned,
+      isEdited: isEdited ?? this.isEdited,
+      createdAt: createdAt ?? this.createdAt,
+      editedAt: editedAt ?? this.editedAt,
     );
   }
 
-  // ============================================
-  // TO JSON
-  // ============================================
+  // ✅ MÉTHODE fromJson
+  factory PostModel.fromJson(Map<String, dynamic> json) {
+    return PostModel(
+      id: json['id']?.toString() ?? '',
+      userId: json['user_id']?.toString() ?? '',
+      username: json['user']?['username']?.toString(),
+      displayName: json['user']?['display_name']?.toString(),
+      avatarUrl: json['user']?['avatar_url']?.toString(),
+      caption: json['caption']?.toString() ?? '',
+      mediaUrls: (json['media_urls'] as List?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
+      location: json['location']?.toString(),
+      likesCount: json['likes_count'] ?? 0,
+      commentsCount: json['comments_count'] ?? 0,
+      sharesCount: json['shares_count'],
+      viewsCount: json['views_count'],
+      savesCount: json['saves_count'],
+      hashtags: (json['hashtags'] as List?)
+          ?.map((e) => e.toString())
+          .toList(),
+      likedByUsers: json['liked_by_users'] as List?,
+      isPinned: json['is_pinned'] ?? false,
+      isEdited: json['is_edited'] ?? false,
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
+          : DateTime.now(),
+      editedAt: json['edited_at'] != null
+          ? DateTime.parse(json['edited_at'])
+          : null,
+    );
+  }
+
+  // ✅ MÉTHODE toJson
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'user_id': userId,
       'caption': caption,
       'media_urls': mediaUrls,
-      'media_count': mediaCount,
       'location': location,
-      'is_pinned': isPinned,
-      'allow_comments': allowComments,
       'likes_count': likesCount,
       'comments_count': commentsCount,
       'shares_count': sharesCount,
       'views_count': viewsCount,
+      'saves_count': savesCount,
+      'hashtags': hashtags,
+      'is_pinned': isPinned,
+      'is_edited': isEdited,
       'created_at': createdAt.toIso8601String(),
-      'updated_at': updatedAt.toIso8601String(),
+      'edited_at': editedAt?.toIso8601String(),
     };
   }
 
-  // ============================================
-  // COPY WITH
-  // ============================================
-  PostModel copyWith({
-    String? caption,
-    String? location,
-    bool? isPinned,
-    bool? allowComments,
-    int? likesCount,
-    int? commentsCount,
-    int? sharesCount,
-    int? viewsCount,
-  }) {
-    return PostModel(
-      id: id,
-      userId: userId,
-      caption: caption ?? this.caption,
-      mediaUrls: mediaUrls,
-      mediaCount: mediaCount,
-      location: location ?? this.location,
-      isPinned: isPinned ?? this.isPinned,
-      allowComments: allowComments ?? this.allowComments,
-      likesCount: likesCount ?? this.likesCount,
-      commentsCount: commentsCount ?? this.commentsCount,
-      sharesCount: sharesCount ?? this.sharesCount,
-      viewsCount: viewsCount ?? this.viewsCount,
-      createdAt: createdAt,
-      updatedAt: DateTime.now(),
-      user: user,
-    );
+  // ✅ MÉTHODE toString (pour debug)
+  @override
+  String toString() {
+    return 'PostModel(id: $id, userId: $userId, caption: $caption, likesCount: $likesCount)';
   }
 
-  // ============================================
-  // HELPERS
-  // ============================================
-  bool get isCarousel => mediaCount > 1;
-  bool get hasLocation => location != null && location!.isNotEmpty;
-  String get username => user?['username'] ?? '';
-  String? get avatarUrl => user?['avatar_url'];
+  // ✅ MÉTHODE equality
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is PostModel && other.id == id;
+  }
+
+  @override
+  int get hashCode => id.hashCode;
 }

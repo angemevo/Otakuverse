@@ -1,6 +1,5 @@
 // lib/config/api_config.dart
 import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 
 class ApiConfig {
@@ -24,14 +23,14 @@ class ApiConfig {
     }
 
     if (Platform.isAndroid) {
-      return 'http://192.168.1.3:3000'; // IP de ton PC
+      return 'http://192.168.1.2:3000'; // IP de ton PC
     }
 
     if (Platform.isIOS) {
-      return 'http://192.168.1.3:3000';
+      return 'http://192.168.1.2:3000';
     }
 
-    return 'http://192.168.1.3:3000';
+    return 'http://192.168.1.2:3000';
   }
   
   // ============================================
@@ -42,6 +41,8 @@ class ApiConfig {
   static String get signin => '$baseUrl/auth/signin';
   static String get signout => '$baseUrl/auth/signout';
   static String get authMe => '$baseUrl/auth/me';
+  static String get googleSignin => '$baseUrl/auth/google'; // ✅ AJOUTÉ
+  static String get onboarding => '$baseUrl/auth/onboarding'; // ✅ AJOUTÉ
   
   // ============================================
   // USERS ENDPOINTS
@@ -85,6 +86,23 @@ class ApiConfig {
   
   static String followUser(String userId) => '$baseUrl/users/$userId/follow';
   static String unfollowUser(String userId) => '$baseUrl/users/$userId/follow';
+
+  // ============================================
+  // STORIES ENDPOINTS
+  // ============================================
+  static String stories = '$baseUrl/stories';
+  
+  // ============================================
+  // CONVERSATIONS ENDPOINTS ✅ NOUVEAU
+  // ============================================
+  
+  static String get conversations => '$baseUrl/conversations';
+  static String getConversation(String conversationId) => '$baseUrl/conversations/$conversationId';
+  static String getConversationMessages(String conversationId) => '$baseUrl/conversations/$conversationId/messages';
+  static String sendMessage(String conversationId) => '$baseUrl/conversations/$conversationId/messages';
+  static String markAsRead(String conversationId) => '$baseUrl/conversations/$conversationId/read';
+  static String addParticipants(String conversationId) => '$baseUrl/conversations/$conversationId/participants';
+  static String leaveConversation(String conversationId) => '$baseUrl/conversations/$conversationId/leave';
   
   // ============================================
   // SUPABASE (si utilisé côté Flutter)

@@ -1,3 +1,5 @@
+// ignore_for_file: unused_local_variable
+
 import 'package:flutter/material.dart';
 import 'package:otakuverse/screens/posts/create_post_screen.dart';
 import 'dart:math' as math;

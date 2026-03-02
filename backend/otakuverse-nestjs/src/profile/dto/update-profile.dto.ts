@@ -1,20 +1,6 @@
-import {
-  IsString,
-  IsOptional,
-  IsArray,
-  IsBoolean,
-  IsEnum,
-  IsUrl,
-  IsDateString,
-  MaxLength,
-} from 'class-validator';
+// src/profiles/dto/update-profile.dto.ts
 
-export enum Gender {
-  MALE = 'male',
-  FEMALE = 'female',
-  OTHER = 'other',
-  PREFER_NOT_TO_SAY = 'prefer_not_to_say',
-}
+import { IsOptional, IsString, IsArray, IsBoolean } from 'class-validator';
 
 export class UpdateProfileDto {
   @IsOptional()
@@ -23,7 +9,6 @@ export class UpdateProfileDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(500)
   bio?: string;
 
   @IsOptional()
@@ -35,19 +20,19 @@ export class UpdateProfileDto {
   banner_url?: string;
 
   @IsOptional()
-  @IsDateString()
+  @IsString()
   birth_date?: string;
 
   @IsOptional()
-  @IsEnum(Gender)
-  gender?: Gender;
+  @IsString()
+  gender?: string;
 
   @IsOptional()
   @IsString()
   location?: string;
 
   @IsOptional()
-  @IsUrl()
+  @IsString()
   website?: string;
 
   @IsOptional()
@@ -57,6 +42,10 @@ export class UpdateProfileDto {
   @IsOptional()
   @IsArray()
   favorite_manga?: string[];
+
+  @IsOptional()
+  @IsArray()
+  favorite_games?: string[];
 
   @IsOptional()
   @IsArray()

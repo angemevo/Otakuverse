@@ -3,16 +3,15 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class SupabaseGoogleAuthService {
   final SupabaseClient _client = Supabase.instance.client;
 
-  /// Retourne les données de l'utilisateur ou null si échec
   Future<User?> signInWithGoogle() async {
     try {
-      final response = await _client.auth.signInWithProvider(
-        Provider.google,
-        options: AuthOptions(
-          redirectTo: 'io.supabase.otakuverse://login-callback/', // ton deep link
-        ),
+      await _client.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: 'io.supabase.otakuverse://login-callback/',
       );
-      return response.user; // Supabase User
+
+      // Après redirection, récupérer l'utilisateur
+      return _client.auth.currentUser;
     } catch (e) {
       print("Erreur Google Sign-In Supabase : $e");
       return null;

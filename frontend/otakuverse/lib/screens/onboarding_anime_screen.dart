@@ -1,7 +1,11 @@
+// screens/auth/onboarding_anime_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:otakuverse/core/constants/colors.dart';
+import 'package:otakuverse/core/utils/helpers.dart';
 import 'package:otakuverse/core/widgets/onboarding/anime_card.dart';
 import 'package:otakuverse/models/sign_up_data.dart';
+import 'package:otakuverse/screens/navigation_page.dart';
 import '../../../core/widgets/button/app_button.dart';
 import 'onboarding_games_screen.dart';
 
@@ -15,27 +19,108 @@ class OnboardingAnimeScreen extends StatefulWidget {
 }
 
 class _OnboardingAnimeScreenState extends State<OnboardingAnimeScreen> {
+  // ✅ VRAIES IMAGES DEPUIS LE WEB
   final List<Map<String, String>> _animeList = [
-    {'name': 'One Piece', 'image': 'one_piece.jpg', 'genre': 'Shonen'},
-    {'name': 'Naruto', 'image': 'naruto.jpg', 'genre': 'Shonen'},
-    {'name': 'Attack on Titan', 'image': 'aot.jpg', 'genre': 'Action'},
-    {'name': 'Demon Slayer', 'image': 'demon_slayer.jpg', 'genre': 'Shonen'},
-    {'name': 'My Hero Academia', 'image': 'mha.jpg', 'genre': 'Shonen'},
-    {'name': 'Jujutsu Kaisen', 'image': 'jjk.jpg', 'genre': 'Shonen'},
-    {'name': 'Death Note', 'image': 'death_note.jpg', 'genre': 'Thriller'},
-    {'name': 'Fullmetal Alchemist', 'image': 'fma.jpg', 'genre': 'Shonen'},
-    {'name': 'Tokyo Ghoul', 'image': 'tokyo_ghoul.jpg', 'genre': 'Seinen'},
-    {'name': 'Sword Art Online', 'image': 'sao.jpg', 'genre': 'Isekai'},
-    {'name': 'Steins;Gate', 'image': 'steins_gate.jpg', 'genre': 'Sci-Fi'},
-    {'name': 'Hunter x Hunter', 'image': 'hxh.jpg', 'genre': 'Shonen'},
-    {'name': 'One Punch Man', 'image': 'opm.jpg', 'genre': 'Action'},
-    {'name': 'Bleach', 'image': 'bleach.jpg', 'genre': 'Shonen'},
-    {'name': 'Code Geass', 'image': 'code_geass.jpg', 'genre': 'Mecha'},
-    {'name': 'Dragon Ball Z', 'image': 'dbz.jpg', 'genre': 'Shonen'},
-    {'name': 'Cowboy Bebop', 'image': 'cowboy_bebop.jpg', 'genre': 'Sci-Fi'},
-    {'name': 'Neon Genesis Evangelion', 'image': 'evangelion.jpg', 'genre': 'Mecha'},
-    {'name': 'Your Name', 'image': 'your_name.jpg', 'genre': 'Romance'},
-    {'name': 'Violet Evergarden', 'image': 'violet_evergarden.jpg', 'genre': 'Drama'},
+    {
+      'name': 'One Piece',
+      'image': 'https://cdn.myanimelist.net/images/anime/6/73245.jpg',
+      'genre': 'Shonen'
+    },
+    {
+      'name': 'Naruto',
+      'image': 'https://cdn.myanimelist.net/images/anime/13/17405.jpg',
+      'genre': 'Shonen'
+    },
+    {
+      'name': 'Attack on Titan',
+      'image': 'https://cdn.myanimelist.net/images/anime/10/47347.jpg',
+      'genre': 'Action'
+    },
+    {
+      'name': 'Demon Slayer',
+      'image': 'https://cdn.myanimelist.net/images/anime/1286/99889.jpg',
+      'genre': 'Shonen'
+    },
+    {
+      'name': 'My Hero Academia',
+      'image': 'https://cdn.myanimelist.net/images/anime/10/78745.jpg',
+      'genre': 'Shonen'
+    },
+    {
+      'name': 'Jujutsu Kaisen',
+      'image': 'https://cdn.myanimelist.net/images/anime/1171/109222.jpg',
+      'genre': 'Shonen'
+    },
+    {
+      'name': 'Death Note',
+      'image': 'https://cdn.myanimelist.net/images/anime/9/9453.jpg',
+      'genre': 'Thriller'
+    },
+    {
+      'name': 'Fullmetal Alchemist',
+      'image': 'https://cdn.myanimelist.net/images/anime/1208/94745.jpg',
+      'genre': 'Shonen'
+    },
+    {
+      'name': 'Tokyo Ghoul',
+      'image': 'https://cdn.myanimelist.net/images/anime/5/64449.jpg',
+      'genre': 'Seinen'
+    },
+    {
+      'name': 'Sword Art Online',
+      'image': 'https://cdn.myanimelist.net/images/anime/11/39717.jpg',
+      'genre': 'Isekai'
+    },
+    {
+      'name': 'Steins;Gate',
+      'image': 'https://cdn.myanimelist.net/images/anime/5/73199.jpg',
+      'genre': 'Sci-Fi'
+    },
+    {
+      'name': 'Hunter x Hunter',
+      'image': 'https://cdn.myanimelist.net/images/anime/11/33657.jpg',
+      'genre': 'Shonen'
+    },
+    {
+      'name': 'One Punch Man',
+      'image': 'https://cdn.myanimelist.net/images/anime/12/76049.jpg',
+      'genre': 'Action'
+    },
+    {
+      'name': 'Bleach',
+      'image': 'https://cdn.myanimelist.net/images/anime/3/40451.jpg',
+      'genre': 'Shonen'
+    },
+    {
+      'name': 'Code Geass',
+      'image': 'https://cdn.myanimelist.net/images/anime/5/50331.jpg',
+      'genre': 'Mecha'
+    },
+    {
+      'name': 'Dragon Ball Z',
+      'image': 'https://cdn.myanimelist.net/images/anime/1277/142022.jpg',
+      'genre': 'Shonen'
+    },
+    {
+      'name': 'Cowboy Bebop',
+      'image': 'https://cdn.myanimelist.net/images/anime/4/19644.jpg',
+      'genre': 'Sci-Fi'
+    },
+    {
+      'name': 'Evangelion',
+      'image': 'https://cdn.myanimelist.net/images/anime/1314/108941.jpg',
+      'genre': 'Mecha'
+    },
+    {
+      'name': 'Your Name',
+      'image': 'https://cdn.myanimelist.net/images/anime/5/87048.jpg',
+      'genre': 'Romance'
+    },
+    {
+      'name': 'Violet Evergarden',
+      'image': 'https://cdn.myanimelist.net/images/anime/1795/95088.jpg',
+      'genre': 'Drama'
+    },
   ];
 
   List<String> _selectedAnimes = [];
@@ -69,9 +154,7 @@ class _OnboardingAnimeScreenState extends State<OnboardingAnimeScreen> {
   void _handleSkip() {
     widget.signupData.favoriteAnimes = [];
     widget.signupData.favoriteGames = [];
-
-    // Aller directement au Home
-    Navigator.of(context).pushReplacementNamed('/home');
+    Helpers.navigateOffAll(const NavigationPage());
   }
 
   @override
@@ -81,7 +164,6 @@ class _OnboardingAnimeScreenState extends State<OnboardingAnimeScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Header
             Padding(
               padding: const EdgeInsets.all(24.0),
               child: Column(
@@ -111,9 +193,7 @@ class _OnboardingAnimeScreenState extends State<OnboardingAnimeScreen> {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 16),
-
                   const Text(
                     'Tes animés favoris',
                     style: TextStyle(
@@ -122,31 +202,24 @@ class _OnboardingAnimeScreenState extends State<OnboardingAnimeScreen> {
                       color: Colors.white,
                     ),
                   ),
-
                   const SizedBox(height: 8),
-
                   Text(
-                    'Sélectionne ${_selectedAnimes.length > 0 ? _selectedAnimes.length : 'au moins 3'} animés que tu aimes',
-                    style: TextStyle(
+                    'Sélectionne ${_selectedAnimes.isNotEmpty ? _selectedAnimes.length : 'au moins 3'} animés que tu aimes',
+                    style: const TextStyle(
                       fontSize: 16,
                       color: AppColors.lightGray,
                     ),
                   ),
-
                   const SizedBox(height: 8),
-
-                  // Progress indicator
-                  LinearProgressIndicator(
-                    value: 0.5, // Page 1/2
+                  const LinearProgressIndicator(
+                    value: 0.5,
                     backgroundColor: AppColors.darkGray,
-                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.crimsonRed),
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.crimsonRed),
                     minHeight: 4,
                   ),
                 ],
               ),
             ),
-
-            // Liste d'animés
             Expanded(
               child: GridView.builder(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -164,15 +237,13 @@ class _OnboardingAnimeScreenState extends State<OnboardingAnimeScreen> {
                   return AnimeCard(
                     name: anime['name']!,
                     genre: anime['genre']!,
-                    imagePath: anime['image']!,
+                    imagePath: anime['image']!,  // ✅ URL du web
                     isSelected: isSelected,
                     onTap: () => _toggleAnime(anime['name']!),
                   );
                 },
               ),
             ),
-
-            // Bouton Suivant
             Padding(
               padding: const EdgeInsets.all(24.0),
               child: AppButton(

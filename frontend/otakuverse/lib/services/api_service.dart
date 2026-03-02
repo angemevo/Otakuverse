@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:otakuverse/config/api_config.dart';
 import 'package:otakuverse/core/utils/helpers.dart';
-import 'package:otakuverse/screens/auth/login_screen.dart';
+import 'package:otakuverse/screens/auth/sign_in_screen.dart';
 import 'package:otakuverse/services/storage_service.dart';
 
 class ApiService {

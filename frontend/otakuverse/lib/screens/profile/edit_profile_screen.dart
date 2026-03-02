@@ -1,3 +1,5 @@
+// screens/profile/edit_profile_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -5,7 +7,6 @@ import 'package:otakuverse/core/constants/colors.dart';
 import 'package:otakuverse/models/profile_model.dart';
 import 'package:otakuverse/services/profile_service.dart';
 import 'package:otakuverse/services/storage_upload_service.dart';
-import 'package:otakuverse/services/storage_service.dart';
 import 'dart:io';
 
 class EditProfileScreen extends StatefulWidget {
@@ -20,6 +21,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late final TextEditingController _displayNameController;
   late final TextEditingController _bioController;
   late final TextEditingController _websiteController;
+  // ❌ PAS de _locationController
 
   String? _selectedGender;
   bool _isLoading = false;
@@ -56,8 +58,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   // ============================================
   Future<void> _pickAvatar() async {
     final picker = ImagePicker();
-    final image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
-    if (image != null) setState(() => _newAvatar = File(image.path));
+    final image = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+      maxWidth: 800,
+      maxHeight: 800,
+    );
+    if (image != null) {
+      setState(() => _newAvatar = File(image.path));
+    }
   }
 
   // ============================================
@@ -65,52 +74,64 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   // ============================================
   Future<void> _pickBanner() async {
     final picker = ImagePicker();
-    final image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
-    if (image != null) setState(() => _newBanner = File(image.path));
+    final image = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+      maxWidth: 1200,
+      maxHeight: 400,
+    );
+    if (image != null) {
+      setState(() => _newBanner = File(image.path));
+    }
   }
 
   // ============================================
   // SAUVEGARDER
   // ============================================
-  Future<void> _save() async {
+  Future<void> _saveProfile() async {
     setState(() => _isLoading = true);
 
     try {
-      final userData = await StorageService().getUserData();
-      final userId = userData?['id'] as String? ?? '';
-
       String? avatarUrl = widget.profile.avatarUrl;
       String? bannerUrl = widget.profile.bannerUrl;
 
+      // Upload avatar si nouveau
       if (_newAvatar != null) {
+        print('📤 Uploading avatar...');
         avatarUrl = await StorageUploadService()
-            .uploadImage(_newAvatar!, userId, folder: 'avatars');
+            .uploadAvatar(_newAvatar!, widget.profile.userId);
+        print('✅ Avatar uploaded: $avatarUrl');
       }
 
+      // Upload banner si nouveau
       if (_newBanner != null) {
+        print('📤 Uploading banner...');
         bannerUrl = await StorageUploadService()
-            .uploadImage(_newBanner!, userId, folder: 'banners');
+            .uploadBanner(_newBanner!, widget.profile.userId);
+        print('✅ Banner uploaded: $bannerUrl');
       }
 
+      // ✅ Mettre à jour le profil (sans location)
       final result = await ProfileService().updateProfile(
-        displayName: _displayNameController.text.trim().isEmpty
-            ? null
+        displayName: _displayNameController.text.trim().isEmpty 
+            ? null 
             : _displayNameController.text.trim(),
-        bio: _bioController.text.trim().isEmpty
-            ? null
+        bio: _bioController.text.trim().isEmpty 
+            ? null 
             : _bioController.text.trim(),
-        website: _websiteController.text.trim().isEmpty
-            ? null
-            : _websiteController.text.trim(),
-        gender: _selectedGender,
         avatarUrl: avatarUrl,
         bannerUrl: bannerUrl,
+        website: _websiteController.text.trim().isEmpty 
+            ? null 
+            : _websiteController.text.trim(),
+        gender: _selectedGender,
+        // ❌ PAS de location ici !
       );
 
       if (!mounted) return;
 
       if (result['success'] != null) {
-        Navigator.pop(context);
+        Navigator.pop(context, true);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('✅ Profil mis à jour'),
@@ -119,14 +140,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result['error'] ?? 'Erreur')),
+          SnackBar(
+            content: Text(result['error'] ?? 'Erreur de mise à jour'),
+            backgroundColor: AppColors.errorRed,
+          ),
         );
       }
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('❌ Erreur : $e')),
-      );
+    } catch (e, stackTrace) {
+      print('❌ Error saving profile: $e');
+      print('Stack trace: $stackTrace');
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Erreur: $e'),
+            backgroundColor: AppColors.errorRed,
+          ),
+        );
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -151,24 +182,28 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
-          TextButton(
-            onPressed: _isLoading ? null : _save,
-            child: _isLoading
-                ? const SizedBox(
-                    width: 20, height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: AppColors.crimsonRed,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: TextButton(
+              onPressed: _isLoading ? null : _saveProfile,
+              child: _isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.crimsonRed,
+                      ),
+                    )
+                  : Text(
+                      'Sauvegarder',
+                      style: GoogleFonts.inter(
+                        color: AppColors.crimsonRed,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
                     ),
-                  )
-                : Text(
-                    'Sauvegarder',
-                    style: GoogleFonts.inter(
-                      color: AppColors.crimsonRed,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                    ),
-                  ),
+            ),
           ),
         ],
       ),
@@ -205,9 +240,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ),
                   const SizedBox(height: 16),
                   _buildGenderPicker(),
+                  
+                  // ✅ Afficher la localisation actuelle (lecture seule)
+                  if (widget.profile.location != null) ...[
+                    const SizedBox(height: 16),
+                    _buildLocationDisplay(),
+                  ],
+                  
                   const SizedBox(height: 32),
-
-                  // Section animés favoris
                   _buildFavoritesSection(),
                 ],
               ),
@@ -239,24 +279,37 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   _newBanner != null
                       ? Image.file(_newBanner!, fit: BoxFit.cover)
                       : widget.profile.hasBanner
-                          ? Image.network(widget.profile.bannerUrl!, fit: BoxFit.cover)
+                          ? Image.network(
+                              widget.profile.bannerUrl!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(
+                                decoration: const BoxDecoration(
+                                  gradient: AppColors.primaryGradient,
+                                ),
+                              ),
+                            )
                           : Container(
                               decoration: const BoxDecoration(
                                 gradient: AppColors.primaryGradient,
                               ),
                             ),
-                  Container(color: AppColors.blackWithOpacity(0.45)),
+                  Container(color: AppColors.blackWithOpacity(0.4)),
                   Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.camera_alt, color: AppColors.pureWhite, size: 28),
+                        const Icon(
+                          Icons.camera_alt,
+                          color: AppColors.pureWhite,
+                          size: 28,
+                        ),
                         const SizedBox(height: 6),
                         Text(
                           'Modifier la bannière',
                           style: GoogleFonts.inter(
                             color: AppColors.pureWhite,
                             fontSize: 13,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
@@ -278,30 +331,42 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   Container(
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.deepBlack, width: 4),
+                      border: Border.all(
+                        color: AppColors.deepBlack,
+                        width: 4,
+                      ),
                     ),
                     child: CircleAvatar(
                       radius: 40,
                       backgroundColor: AppColors.darkGray,
                       backgroundImage: _newAvatar != null
-                          ? FileImage(_newAvatar!) as ImageProvider
+                          ? FileImage(_newAvatar!)
                           : widget.profile.hasAvatar
                               ? NetworkImage(widget.profile.avatarUrl!)
                               : null,
                       child: (_newAvatar == null && !widget.profile.hasAvatar)
-                          ? const Icon(Icons.person, color: AppColors.pureWhite, size: 36)
+                          ? const Icon(
+                              Icons.person,
+                              color: AppColors.pureWhite,
+                              size: 36,
+                            )
                           : null,
                     ),
                   ),
                   Positioned(
-                    bottom: 0, right: 0,
+                    bottom: 0,
+                    right: 0,
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: const BoxDecoration(
                         color: AppColors.crimsonRed,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.camera_alt, color: AppColors.pureWhite, size: 14),
+                      child: const Icon(
+                        Icons.camera_alt,
+                        color: AppColors.pureWhite,
+                        size: 14,
+                      ),
                     ),
                   ),
                 ],
@@ -314,7 +379,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             left: 104,
             child: Text(
               'Modifier la photo',
-              style: GoogleFonts.inter(color: AppColors.mediumGray, fontSize: 12),
+              style: GoogleFonts.inter(
+                color: AppColors.mediumGray,
+                fontSize: 12,
+              ),
             ),
           ),
         ],
@@ -336,7 +404,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: GoogleFonts.inter(color: AppColors.mediumGray, fontSize: 12)),
+        Text(
+          label,
+          style: GoogleFonts.inter(
+            color: AppColors.mediumGray,
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
         const SizedBox(height: 6),
         TextField(
           controller: controller,
@@ -357,9 +432,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.crimsonRed, width: 1.5),
+              borderSide: const BorderSide(
+                color: AppColors.crimsonRed,
+                width: 1.5,
+              ),
             ),
-            counterStyle: GoogleFonts.inter(color: AppColors.mediumGray, fontSize: 11),
+            counterStyle: GoogleFonts.inter(
+              color: AppColors.mediumGray,
+              fontSize: 11,
+            ),
           ),
         ),
       ],
@@ -373,7 +454,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Genre', style: GoogleFonts.inter(color: AppColors.mediumGray, fontSize: 12)),
+        Text(
+          'Genre',
+          style: GoogleFonts.inter(
+            color: AppColors.mediumGray,
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
         const SizedBox(height: 6),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -386,13 +474,116 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             isExpanded: true,
             dropdownColor: AppColors.darkGray,
             underline: const SizedBox(),
-            icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.mediumGray),
-            hint: Text('Sélectionner', style: GoogleFonts.inter(color: AppColors.mediumGray)),
-            style: GoogleFonts.inter(color: AppColors.pureWhite, fontSize: 15),
+            icon: const Icon(
+              Icons.keyboard_arrow_down,
+              color: AppColors.mediumGray,
+            ),
+            hint: Text(
+              'Sélectionner',
+              style: GoogleFonts.inter(color: AppColors.mediumGray),
+            ),
+            style: GoogleFonts.inter(
+              color: AppColors.pureWhite,
+              fontSize: 15,
+            ),
             items: _genders.map((g) {
-              return DropdownMenuItem(value: g, child: Text(_genderLabels[g]!));
+              return DropdownMenuItem(
+                value: g,
+                child: Text(_genderLabels[g]!),
+              );
             }).toList(),
             onChanged: (val) => setState(() => _selectedGender = val),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ============================================
+  // AFFICHAGE LOCALISATION (LECTURE SEULE)
+  // ============================================
+  Widget _buildLocationDisplay() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              'Localisation',
+              style: GoogleFonts.inter(
+                color: AppColors.mediumGray,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.mediumGray.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.gps_fixed,
+                    color: AppColors.successGreen,
+                    size: 10,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Auto',
+                    style: GoogleFonts.inter(
+                      color: AppColors.mediumGray,
+                      fontSize: 9,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppColors.darkGray.withOpacity(0.5),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: AppColors.mediumGray.withOpacity(0.2),
+            ),
+          ),
+          child: Row(
+            children: [
+              const Icon(
+                Icons.location_on,
+                color: AppColors.successGreen,
+                size: 18,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  widget.profile.location ?? 'Localisation non définie',
+                  style: GoogleFonts.inter(
+                    color: AppColors.lightGray,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+              const Icon(
+                Icons.lock_outline,
+                color: AppColors.mediumGray,
+                size: 16,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'La localisation est mise à jour automatiquement',
+          style: GoogleFonts.inter(
+            color: AppColors.mediumGray,
+            fontSize: 11,
           ),
         ),
       ],
@@ -405,9 +596,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget _buildFavoritesSection() {
     final hasAnime = widget.profile.favoriteAnime.isNotEmpty;
     final hasManga = widget.profile.favoriteManga.isNotEmpty;
+    final hasGames = widget.profile.favoriteGames.isNotEmpty;
     final hasGenres = widget.profile.favoriteGenres.isNotEmpty;
 
-    if (!hasAnime && !hasManga && !hasGenres) return const SizedBox();
+    if (!hasAnime && !hasManga && !hasGames && !hasGenres) {
+      return const SizedBox();
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -423,40 +617,88 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
             ),
             const Spacer(),
-            Text(
-              'Modifiable bientôt',
-              style: GoogleFonts.inter(color: AppColors.mediumGray, fontSize: 11),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.mediumGray.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                'Lecture seule',
+                style: GoogleFonts.inter(
+                  color: AppColors.mediumGray,
+                  fontSize: 10,
+                ),
+              ),
             ),
           ],
         ),
         const SizedBox(height: 12),
 
         if (hasGenres) ...[
-          Text('Genres favoris', style: GoogleFonts.inter(color: AppColors.mediumGray, fontSize: 12)),
+          Text(
+            'Genres favoris',
+            style: GoogleFonts.inter(
+              color: AppColors.mediumGray,
+              fontSize: 12,
+            ),
+          ),
           const SizedBox(height: 8),
           Wrap(
-            spacing: 8, runSpacing: 8,
+            spacing: 8,
+            runSpacing: 8,
             children: widget.profile.favoriteGenres.map((g) => _chip(g)).toList(),
           ),
           const SizedBox(height: 16),
         ],
 
         if (hasAnime) ...[
-          Text('Animés favoris', style: GoogleFonts.inter(color: AppColors.mediumGray, fontSize: 12)),
+          Text(
+            'Animés favoris',
+            style: GoogleFonts.inter(
+              color: AppColors.mediumGray,
+              fontSize: 12,
+            ),
+          ),
           const SizedBox(height: 8),
           Wrap(
-            spacing: 8, runSpacing: 8,
+            spacing: 8,
+            runSpacing: 8,
             children: widget.profile.favoriteAnime.map((a) => _chip(a)).toList(),
           ),
           const SizedBox(height: 16),
         ],
 
         if (hasManga) ...[
-          Text('Mangas favoris', style: GoogleFonts.inter(color: AppColors.mediumGray, fontSize: 12)),
+          Text(
+            'Mangas favoris',
+            style: GoogleFonts.inter(
+              color: AppColors.mediumGray,
+              fontSize: 12,
+            ),
+          ),
           const SizedBox(height: 8),
           Wrap(
-            spacing: 8, runSpacing: 8,
+            spacing: 8,
+            runSpacing: 8,
             children: widget.profile.favoriteManga.map((m) => _chip(m)).toList(),
+          ),
+          const SizedBox(height: 16),
+        ],
+
+        if (hasGames) ...[
+          Text(
+            'Jeux favoris',
+            style: GoogleFonts.inter(
+              color: AppColors.mediumGray,
+              fontSize: 12,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: widget.profile.favoriteGames.map((g) => _chip(g)).toList(),
           ),
         ],
       ],
